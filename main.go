@@ -29,6 +29,6 @@ func main() {
 	postHandler := handler.NewPostHandler(logger, nil, postService)
 	mux.HandleFunc("GET /posts", postHandler.GetPosts)
 
-	log.Panic(http.ListenAndServe(":8080", mux))
+	log.Panic(http.ListenAndServe(":9090", mux))
 
 }
