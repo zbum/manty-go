@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="~{decorators/manty/list}">
+<head>
+  <script type="text/javascript" th:inline="javascript">
+      const bbsTypeId = /*[[${bbsType.bbsTypeId}]]*/ '1'
+      const securityType = /*[[${bbsType.securityType}]]*/ 2
+      const writeSecurityType = /*[[${bbsType.writeSecurityType.name()}]]*/ 'AUTHENTICATED_ONLY'
+      /*[# sec:authorize="isAuthenticated()"]*/
+      const loginUserName = /*[[${#authentication.principal.username}]]*/ 'admin'
+      /*[/]*/
+      const bbsTypeName = /*[[${bbsType.typeName}]]*/ 'gear'
+
+      $(document).ready(function(){
+          if ( "${bbsType.bbsTypeId}" == "0" || "${bbsType.bbsTypeId}" == "" ) {
+              alert( "정의되지 않은 게시판입니다." );
+          }
+          $("#search-button").click(function(){
+              search();
+          });
+
+          $("#write-button").click(function() {
+              if (writeSecurityType === 'AUTHENTICATED_ONLY') {
+                  /*[# sec:authorize="!isAuthenticated()"]*/
+                  alert("로그인한 회원만 글쓰기가 가능합니다.");
+                  return;
+                  /*[/]*/
+              }
+              location.href = "/bbs/"+bbsTypeName+"/form";
+              return false;
+          });
+
+          $(".img-thumbnail").click(function(){
+              if ( securityType === 2) {
+                  /*[# sec:authorize="!isAuthenticated()"]*/
+                  alert("로그인한 회원만 조회 가능합니다.");
+                  return;
+                  /*[/]*/
+              }
+
+              if ( securityType === 3) {
+                  /*[# sec:authorize="!hasRole('ROLE_ADMIN')"]*/
+                  /*[# sec:authorize="!isAuthenticated()"]*/
+                  alert("본인글만 조회 가능합니다.");
+                  return;
+                  /*[/]*/
+                  /*[# sec:authorize="isAuthenticated()"]*/
+                  if (loginUserName != $(this).attr("author")) {
+                      alert("본인글만 조회 가능합니다.");
+                      return;
+                  }
+                  /*[/]*/
+                  /*[/]*/
+              }
+
+              location.href="/bbs/detail/"+bbsTypeName+"?id="+$(this).attr("id");
+          });
+    });
+    function moveToPage(pageIndex){
+      $("#pageIndex").val(pageIndex);
+      $("#search-form").attr("action","/bbs/list/" + bbsTypeName);
+      $("#search-form").submit();
+    }
+
+    function search(){
+      $("#pageIndex").val(1);
+      $("#search-form").submit();
+    }
+  </script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/ekko-lightbox/3.3.0/ekko-lightbox.min.js"></script>
+
+    <link href="//cdnjs.cloudflare.com/ajax/libs/ekko-lightbox/3.3.0/ekko-lightbox.min.css" rel="stylesheet">
+</head>
+
+<body>
+<th:block layout:fragment="content">
+    <th:block th:if="${not #strings.isEmpty(bbsType.notice)}" >
+      <div class="alert alert-success alert-dismissible animated fadeInDown" role="alert">
+        <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <strong>Notice!</strong> ${bbsType.notice}
+      </div>
+    </th:block>
+
+    <!-- search_box -->
+    <div class="well  well-sm">
+        <form class="form-inline" method="get" id="search-form">
+            <input name="bbsId" id="bbs-id" type="hidden" th:value="${bbsType.bbsTypeId}"/>
+            <input name="pageIndex" id="pageIndex" type="hidden" th:value="${searchVO.pageIndex}"/>
+
+            <div class="form-group">
+                <select name="searchCondition" class="form-control">
+                    <option value="1">제목</option>
+                    <option value="2">내용</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="sr-only" for="search-keyword">검색어</label>
+                <input type="text" class="form-control" id="search-keyword" name="searchKeyword" th:value="${searchVO.searchKeyword}"  maxlength="35" />
+            </div>
+            <button type="submit" id="search-button" class="btn btn-default btn-primary"> 검색 </button>
+        </form>
+    </div>
+    <!-- // search_box -->
+
+    <!-- table -->
+    <div class="image-gallery">
+        <div class="row" style="margin-bottom: 15px;">
+            <div class="col-md-3" th:if="${not #strings.isEmpty( bbs.firstImageUrl)}" th:each="bbs : ${list}">
+                <img th:src="${bbs.firstImageUrl}" class="img-thumbnail" th:id="${bbs.id}" th:attr="author=${bbs.regUsername}" />
+                <br />
+                <p th:text="${bbs.title}">title</p>
+            </div>
+            <div class="col-md-3" th:if="${#strings.isEmpty( bbs.firstImageUrl)}" th:each="bbs : ${list}">
+                    <div class="col-md-3" >
+                        <img src="/images/ext/no_image.jpg" class="img-thumbnail" th:id="${bbs.id}" th:attr="author=${bbs.regUsername}" />
+                        <br />
+                        <p th:text="${bbs.title}">title</p>
+                    </div>
+            </div>
+        </div>
+    </div>
+    <!-- //table -->
+    <!-- 페이지번호 -->
+    <div class="row">
+      <div class="col-md-4 col-sm-4 col-xs-3 " ></div>
+      <div class="col-md-4 col-sm-4 col-xs-6 " >
+        <ul class="pagination">
+            <div th:insert="~{decorators/manty/common/pagination :: pagination}" ></div>
+        </ul>
+      </div>
+      <div class="col-md-4 col-sm-4 col-xs-3 " ></div>
+    </div>
+
+    <div class="row" th:if="${bbsType.writeSecurityType.name() == 'ANY'}">
+        <div class="col-md-9"></div>
+        <div class="col-md-3 text-right">
+            <button type="button" id="write-button" class="btn btn-default">글쓰기</button>
+        </div>
+    </div>
+
+    <div class="row" th:if="${bbsType.writeSecurityType.name() == 'AUTHENTICATED_ONLY'}">
+        <div sec:authorize="isAuthenticated()">
+            <div class="col-md-9"></div>
+            <div class="col-md-3 text-right">
+                <button type="button" id="write-button" class="btn btn-default">글쓰기</button>
+            </div>
+        </div>
+    </div>
+
+</th:block>
+</body>
+</html>

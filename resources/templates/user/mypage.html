@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="decorators/manty/list">
+<head>
+    <meta property="og:image" content="https://www.manty.co.kr${bbs.firstImageUrl}" />
+    <meta property="og:type"  content="website" />
+    <meta property="og:title" content="${bbs.title}" />
+    <meta property="og:description" content="${bbs.shortContents}" />
+
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/summernote/summernote.css" rel="stylesheet">
+    <script type="text/javascript" th:inline="javascript">
+        const message = /*[[${message}]]*/ 'message'
+        /*[# sec:authorize="isAuthenticated()"]*/
+        const loginUserName = /*[[${#authentication.principal.username}]]*/ 'admin'
+        /*[/]*/
+
+        $(document).ready(function(){
+
+            if (message !== "" ) {
+                alert(message);
+            }
+
+            $('#user-nickname-form').bootstrapValidator({
+                live: 'disabled',
+                message: 'This value is not valid',
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh'
+                },
+                fields: {
+                    nickname:{
+                        message: '닉네임을 입력해 주세요.',
+                        validators:{
+                            notEmpty : {
+                                message: '닉네임을 입력해 주세요.'
+                            }
+                        }
+                    }
+                }
+            }).on('success.form.bv', function(e) {
+
+            });
+
+            $("#modify-button").click(function(){
+                location.href = "/bbs/${bbsType.typeName}?id=${bbs.id}";
+            });
+
+            $("#delete-button").click(function(){
+                if (!confirm("삭제하시겠습니까?")) {
+                    return false;
+                }
+                $("#delete-form").submit();
+            });
+
+            $("#list-button").click(function(){
+                location.href = "/bbs/list/${bbsType.typeName}";
+            });
+
+            $("#contents-iframe").on("load", function(){
+                $(this).height($(this).contents().find("body")[0].scrollHeight);
+            });
+
+            $("#tbody-list>tr").click(function(){
+
+                <sec:authorize access="!isAuthenticated()">
+                return;
+                </sec:authorize>
+                <sec:authorize access="isAuthenticated()">
+                if ("<sec:authentication property="principal.username" htmlEscape="false"></sec:authentication>" == $(this).attr("author")) {
+                    $("#id-hidden").val($(this).attr("id"));
+                    $("#comment-textarea").val($(this).find(".comment").html().split("<br>").join('\n'));
+                    $('#comment-modal').modal('show');
+                }
+                </sec:authorize>
+            });
+
+        });
+    </script>
+
+    <script src="/highcharts-4.0.4/js/highcharts.js"></script>
+    <script src="/highcharts-4.0.4/js/modules/exporting.js"></script>
+
+</head>
+
+<body>
+<th:block layout:fragment="content">
+<!-- content -->
+<div class="row">
+    <div class="col-md-8">
+        <h3>
+            <span class="glyphicon glyphicon-list" ></span>
+            회원 정보 <span class="hidden-sm hidden-xs">|</span> <small class="hidden-sm hidden-xs">회원정보를 확인 하세요.</small>
+        </h3>
+    </div>
+</div>
+
+<hr />
+
+    <div class="row" >
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" >
+            <div class="well well-sm">
+                <form th:object="${user}" id="user-nickname-form" class="form-horizontal" role="form" method="post" action="/user/user">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Email</label>
+                        <div class="col-sm-10">
+                            <p class="form-control-static" th:text="${user.username}">jibum.jung@gmail.com</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="nickname-input" class="col-sm-2 control-label">별명</label>
+                        <div class="col-sm-10">
+                            <input th:field="*{nickname}" class="form-control" id="nickname-input"  placeholder="별명" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button type="submit" class="btn btn-default">별명 설정</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <c:if test="${loginType eq 'LOGIN_EMAIL'}" >
+
+                <div class="well well-sm">
+                    <form class="form-horizontal" role="form"  method="post" action="/user/password">
+                        <div class="form-group">
+                            <label for="current-password" class="col-sm-2 control-label">현재 패스워드</label>
+                            <div class="col-sm-10">
+                                <input type="password" class="form-control" id="current-password" name="currentPassword" placeholder="Password">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-password" class="col-sm-2 control-label">새 패스워드</label>
+                            <div class="col-sm-10">
+                                <input type="password" class="form-control" id="new-password"  name="newPassword" placeholder="New Password">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-password-confirm" class="col-sm-2 control-label">새 패스워드 확인</label>
+                            <div class="col-sm-10">
+                                <input type="password" class="form-control" id="new-password-confirm" name="newPasswordConfirm" placeholder="Password Confirm">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-offset-2 col-sm-10">
+                                <button type="submit" class="btn btn-default">패스워드 변경</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </c:if>
+
+        </div>
+    </div>
+
+<hr />
+
+<br />
+
+</th:block>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="~{decorators/manty/no_right}" lang="ko">
+<head>
+    <meta name="_csrf" content="${_csrf.token}"/>
+    <meta name="_csrf_header" content="${_csrf.headerName}"/>
+
+    <title>Base64 Encoder / Decoder </title>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $("#decode-button").on('click', function(){
+
+                $.post("/bbs/ext/utf7/decode",
+                    "encoded="+encodeURIComponent($("#encoded").val()),
+                    function(data) {
+                        $("#decoded").val(data)
+                    }
+                )
+            });
+
+            $("#encode-button").on('click', function(){
+
+                $.post("/bbs/ext/utf7/encode",
+                    "decoded="+encodeURIComponent($("#encoder-plain").val()),
+                    function(data) {
+                        $("#encoder-encoded").val(data)
+                    }
+                )
+            });
+        })
+    </script>
+</head>
+
+<body>
+<th:block layout:fragment="content">
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item active">
+            <a class="nav-link active" data-toggle="tab" href="#home" role="tab">Decoder</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#profile" role="tab">Encoder</a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane active" id="home" role="tabpanel">
+            <h3>
+                <em class="fa fa-user"></em>
+                Modified IMAP UTF7 Decoder | <small> Modified IMAP UTF7 Decoder </small>
+            </h3>
+            <br />
+
+            <div>
+                <form>
+                    <div class="form-group">
+                        <label for="encoded">Modified IMAP UTF7 Encoded Strings</label>
+                        <textarea class="form-control" name="encoded" id="encoded" rows="10"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-9"></div>
+                        <div class="col-md-3 text-right">
+                            <button type="button" id="decode-button" class="btn btn-default">Decode</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="decoded">Modified IMAP UTF7 Decoded Strings</label>
+                        <textarea class="form-control" name="decoded" id="decoded" rows="10" readonly></textarea>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+        <div class="tab-pane" id="profile" role="tabpanel">
+            <h3>
+                <em class="fa fa-user"></em>
+                Modified IMAP UTF7 Encoder | <small> Modified IMAP UTF7 Encoder </small>
+            </h3>
+            <br />
+
+            <div>
+                <form>
+                    <div class="form-group">
+                        <label for="encoder-plain">Plain Text String</label>
+                        <textarea class="form-control" name="encoded" id="encoder-plain" rows="10"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-9"></div>
+                        <div class="col-md-3 text-right">
+                            <button type="button" id="encode-button" class="btn btn-default">Encode</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="encoder-encoded">Modified IMAP UTF7 Encoded Strings</label>
+                        <textarea class="form-control" name="decoded" id="encoder-encoded" rows="10" readonly></textarea>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

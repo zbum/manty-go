@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="decorators/manty/list">
+<head>
+	<script type="text/javascript">
+		$(document).ready(function(){
+            $("#birthDate").datepicker({
+                dateFormat: "yymmdd",
+                defaultDate: -7300,
+                changeYear: true,
+                yearRange: '1950:2010' });
+
+	    	$("#userForm").validate({
+	    		 submitHandler: function(form) {
+	    			form.submit();
+	    		 }
+	    	});
+	    	
+	    	$("#dupBtn").click(function(){
+	    		$.ajax({
+					type : "GET",
+					url : "/user/checkUsernameDuplication.do",		
+					data: "username=" +  $("#username").val(),
+					dataType : "json",
+					success : function(results) {
+						if ( results.dup != "true" ){
+							alert($("#username").val()+"은 사용할 수 있는 아이디 입니다.");
+							$("#dupCheck").val("true");
+						}else{
+							alert($("#username").val()+"은 이미 사용 중입니다.");
+						}
+					},
+					error : function(XMLHttpRequest, textStatus, errorThrown) {
+							alert("서버에 오류가 발생하였습니다.");
+					}
+				});
+	    	});
+
+            $( "#post-dialog" ).dialog({
+                width: 500,
+                height: 350,
+                dialogClass : "no-title",
+                closeOnEscape: true,
+                autoOpen: false,
+                modal: true,
+                buttons: {
+                    Ok: function() {
+                        $("#post-number").val($("#address-select option:selected").val());
+                        $("#post-seq").val($("#address-select option:selected").attr("seq"));
+                        $("#address").val($("#address-select option:selected").text());
+                        $( this ).dialog( "close" );
+                    }
+                }
+            });
+
+            $("#post-number-button").button({
+                icons: {
+                    secondary: "ui-icon-newwin"
+                }
+            }).click(function(){
+                        $( "#post-dialog" ).dialog("open");
+                        return false;
+                    });
+
+            $("#eupmyundong").keypress(function(e) {
+                if (e.keyCode == $.ui.keyCode.ENTER) {
+                    $("#address-select").find('option').remove().end();
+                    $.ajax({
+                        type : "GET",
+                        url : "/post.do",
+                        data: "eupmyundong=" +  encodeURIComponent($("#eupmyundong").val()),
+                        dataType : "json",
+                        success : function(results) {
+                            for ( var inx=0 ; inx < results.length ; inx++ ){
+                                var postNum = parseInt(results[inx].postNum/1000)+"-"+results[inx].postNum%1000;
+                                $("#address-select").append( "<option value='"+results[inx].postNum + "' seq='"+results[inx].seq+"' > ("+postNum+") "+results[inx].address+"</option>");
+                            }
+                        },
+                        error : function(XMLHttpRequest, textStatus, errorThrown) {
+                            alert("서버에 오류가 발생하였습니다.");
+                        }
+                    });
+                    return false;
+                }
+            });
+
+            $("#post-number-search-button").button({
+                icons: {
+                    secondary: "ui-icon-circle-triangle-s"
+                }
+            }).click(function(){
+                $("#address-select").find('option').remove().end();
+                $.ajax({
+                    type : "GET",
+                    url : "/post.do",
+                    data: "eupmyundong=" +  encodeURIComponent($("#eupmyundong").val()),
+                    dataType : "json",
+                    success : function(results) {
+                        for ( var inx=0 ; inx < results.length ; inx++ ){
+                            var postNum = parseInt(results[inx].postNum/1000)+"-"+results[inx].postNum%1000;
+                            $("#address-select").append( "<option value='"+results[inx].postNum + "' seq='"+results[inx].seq+"' > ("+postNum+") "+results[inx].address+"</option>");
+                        }
+                    },
+                    error : function(XMLHttpRequest, textStatus, errorThrown) {
+                        alert("서버에 오류가 발생하였습니다.");
+                    }
+                });
+                return false;
+            });
+
+            $("#eng-address-button").button({
+                icons: {
+                    secondary: "ui-icon-newwin"
+                }
+            }).click(function(){
+                if ( $("#post-number").val() == 0 ) {
+                    alert( "우편번호 정보가 없습니다. 주소 검색 후 다시 등록해 주세요." );
+                    return false;
+                }
+                $.ajax({
+                    type : "GET",
+                    url : "/post.do",
+                    data: "postNum=" +  $("#post-number").val() +"&seq=" + $("#post-seq").val() ,
+                    dataType : "json",
+                    success : function(results) {
+                        var inx = 0;
+                        var engAddress = $("#address-detail").val()+ ", "+results[inx].postEng.aptBldNameEng +", "
+                                        + results[inx].postEng.liEng +", "
+                                        + results[inx].postEng.eupmyundongEng +", "
+                                        + results[inx].postEng.sigunguEng +", "
+                                        + results[inx].postEng.sidoEng +", Korea";
+                        $("#eng-address").val(engAddress);
+                    },
+                    error : function(XMLHttpRequest, textStatus, errorThrown) {
+                        alert("서버에 오류가 발생하였습니다.");
+                    }
+                });
+                return false;
+            });
+
+            $("#address-select").dblclick(function(){
+                $("#post-number").val($("#address-select option:selected").val());
+                $("#post-seq").val($("#address-select option:selected").attr("seq"));
+                $("#address").val($("#address-select option:selected").text());
+                $("#eng-address-hidden").val($("#address-select option:selected").attr("engAddress"));
+                $("#post-dialog").dialog("close");
+            });
+	  	});
+	</script>
+    <style>
+        .no-title .ui-dialog-titlebar {display:none}
+    </style>
+</head>
+
+<body>
+    <input type="hidden" id="eng-address-hidden" name="engAddress" />
+    <form id="userForm" action="/user/user.do" method="post" >
+        <input type="hidden" id="post-number" name="postNumber" value="${user.postNumber}" />
+        <input type="hidden" id="post-seq" name="postSeq" value="${user.postSeq}" />
+  	    <input type="hidden" id="dupCheck" name="dupCheck" value="false" />
+    <div id="ub_right">
+        <table width="744" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+        <td align="right" class="F_gray11" style="padding:0px 20px 0px 0px;"><img src="/images/dot.jpg" width="21" height="9" />HOME &gt; 회원서비스 &gt; <strong>회원정보수정</strong></td>
+    </tr>
+    <tr>
+        <td>
+            <div id="title"><img src="/images/title_icon.jpg" width="35" height="39" /> <span class="F_title">Join</span> <span class="F_grayB11"> | 아쿠아스쿠바 회원정보 수정 </span> </div>
+            <div><img src="/images/title_line.jpg" width="744" height="1" /></div>
+        </td>
+    </tr>
+    </table>
+        <p>
+            <!--컨텐츠 시작 -->
+            </p>
+        <p>&nbsp;</p>
+        <table border="0" align="center" cellpadding="0" cellspacing="0">
+        <tr>
+            <td height="350"><table width="675" border="0" cellpadding="0" cellspacing="0" id="Table_01"><tr>
+                <td height="2" bgcolor="#fb704a">
+                </td>
+            </tr>
+
+                    <tr>
+                        <td><table width="675" border="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td width="130" height="32" class="FB_org">아이디(ID)</td>
+                                <td width="545">
+                                    <span style="padding:0 0 0 10">
+                                        <input id="username" name="username" type="text" value="${user.username}" readonly="true" style=" width:110px" />
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+                                </tr>
+                            <tr>
+                                <td height="32"  class="FB_org">비밀번호</td>
+                                <td class="F_gray11"><span style="padding:0 0 0 10">
+                                    <input name="password" type="password" value="${user.password}" class="input required" style=" width:110px" />
+                                (이름이나 생년월일, 간단한 숫자의 나열 등은 피해주시기 바랍니다.)</span></td>
+                            </tr>
+                            <tr>
+                                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+                                </tr>
+                                <tr>
+                                <td height="32"  class="FB_org">비밀번호 확인</td>
+                                <td class="F_gray11"><span style="padding:0 0 0 10">
+                                    <input name="repassword" type="password" value="${user.password}" class="input required" style=" width:110px" />
+                                (비밀번호 재확인을 위해 다시 기입해주시기 바랍니다.) </span></td>
+                            </tr>
+                            <tr>
+                                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+                                </tr>
+                             <tr>
+                                <td height="32"  class="FB_org">닉네임</td>
+                                <td class="F_gray11"><span style="padding:0 0 0 10">
+                                    <input name="nickname" type="text" value="${user.nickname}" class="input required" style=" width:110px" />
+                                (커뮤니티 공간에서 사용될 닉네임 입니다.) </span></td>
+                            </tr>
+                            <tr>
+                                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+                            </tr>
+                            <tr>
+                                <td height="32"  class="FB_org">한글이름</td>
+                                <td class="F_gray11"><span style="padding:0 0 0 10">
+                                    <input name="koreanName" type="text"  value="${user.koreanName}" class="input required" style=" width:110px" />
+                                </span></td>
+                            </tr>
+                            <tr>
+                                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+                            </tr>
+                            <tr>
+                                <td height="32"  class="FB_org">영문이름</td>
+                                <td class="F_gray11"><span style="padding:0 0 0 10">
+                                    <input name="engName" type="text" value="${user.engName}" class="input" style=" width:110px" />
+                                </span></td>
+                            </tr>
+                            <tr>
+                                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+                            </tr>
+                            <tr>
+                                <td height="32"  class="FB_org">생년월일</td>
+                                <td class="F_gray11"><span style="padding:0 0 0 10">
+                                    <input name="birthDate" id="birthDate" type="text" value="${user.birthDate}" class="input required number" style=" width:110px" />
+                                </span></td>
+                            </tr>
+                            <tr>
+                                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+                            </tr>
+                            <tr>
+                                <td height="32"  class="FB_org">주소</td>
+                                <td class="F_gray11"><span style="padding:0 0 0 10">
+                                    <input name="address" id="address" type="text" class="input" value="${user.address}" readonly="readonly" style=" width:400px" />
+                                    <button id="post-number-button" style="margin-top : 8px;">주소검색</button>
+                                    <br />
+                                    <input name="addressDetail" id="address-detail" type="text" value="${user.addressDetail}" class="input" style=" width:400px" />
+                                    <br /><br />(교재, 장비, 라이센스등을 받을 주소지)</span></td>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+                            </tr>
+                            <tr>
+                                <td height="32"  class="FB_org">영문주소</td>
+                                <td class="F_gray11" style="padding-top:10px;">
+                                    <textarea name="engAddress" id="eng-address" type="text" class="input" style="width:400px;height:50px" >${user.engAddress}
+                                    </textarea>
+                                    <button id="eng-address-button" style="margin-top : 3px;">자동번역</button>
+                                    <br />
+                                    <br />(상세주소영역은 번역되지 않습니다. 수정해 주세요.)</td>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+                            </tr>
+                            <tr>
+                                <td height="32"  class="FB_org">연락처</td>
+                                <td class="F_gray11"><span style="padding:0 0 0 10">
+                                <input name="phoneNumber" type="text" value="${user.phoneNumber}" class="input" style=" width:110px" />
+                                </span></td>
+                            </tr>
+                            <tr>
+                                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+                            </tr>
+                            <tr>
+                                <td height="32"  class="FB_org">이메일</td>
+                                <td class="F_gray11"><span style="padding:0 0 0 10">
+                                    <input name="email" type="text" value="${user.email}" class="input required email" style=" width:110px" />
+                                </span></td>
+                            </tr>
+                            <tr>
+                                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+                            </tr>
+                            <tr>
+                                <td height="32"  class="FB_org">여권번호</td>
+                                <td class="F_gray11"><span style="padding:0 0 0 10">
+                                    <input name="passportNumber" type="text" value="${user.passportNumber}" class="input" style=" width:110px" />
+                                </span></td>
+                            </tr>
+                            <tr>
+                                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+                            </tr>
+                            <tr>
+                                <td height="32"  class="FB_org">라이센스</td>
+                                <td class="F_gray11"><span style="padding:0 0 0 10">
+                                    <input name="license" type="text" value="${user.license}" class="input" style=" width:110px" />
+                                (단체와 등급을 써주세요)</span></td>
+                            </tr>
+                            <tr>
+                                <td height="32"  class="FB_org">강사번호(샵번호)</td>
+                                <td class="F_gray11">
+                                    <span style="padding:0 0 0 10">
+                                        <input name="insNum" type="text" value="${user.insNum}" class="input" style=" width:110px" />
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+                            </tr>
+                            <tr>
+                                <td height="32"  class="FB_org">다이빙 횟수</td>
+                                <td class="F_gray11"><span style="padding:0 0 0 10">
+                                    <input name="diveLog" type="text" value="${user.diveLog}" class="input" value="0" style=" width:110px" />
+                                </span></td>
+                            </tr>
+                            <tr>
+                                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+                            </tr>
+                            <tr>
+                                <td height="32"  class="FB_org">메일링 서비스</td>
+                                <td><input type="checkbox" name="mailingService" checked="${user.mailingService}" id="checkbox" />
+                                    정보메일을 받겠습니다.</td>
+                            </tr>
+                            <tr>
+                                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+                            </tr>
+                            <tr>
+                                <td height="32"  class="FB_org">SMS 수신여부</td>
+                                <td><input type="checkbox" name="smsService" id="checkbox2" checked="${user.smsService}" /> 
+                                    핸드폰 문자 메세지를 받겠습니다.</td>
+                            </tr>
+                            <tr>
+                                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+                            </tr>
+                            <tr>
+                                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+                            </tr>
+
+                        </table></td>
+                    </tr>                    
+                    <tr>
+                        <td height="2" bgcolor="#fb704a">
+                        </td>
+                    </tr>
+
+            </table></td>
+        </tr>
+        <tr>
+            <td height="60"><table border="0" align="center" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td width="74" class="F_gray">
+                        <input type="image" src="/images/btn_modify_user.gif" width="74" height="39" />
+                    </td>
+                    <td width="10" class="F_gray">&nbsp;</td>
+                    <td width="74"><a href="#"><img src="/images/btn_cancel.gif" width="74" height="39" /></a></td>
+                </tr>
+            </table></td>
+        </tr>
+    </table>
+    <!--컨텐츠 끝 -->
+    </div>
+  </form>
+  <div id="post-dialog" >
+      <p>
+          <span class="ui-icon ui-icon-circle-arrow-e" style="float: left; margin: 0 7px 50px 0;"></span>
+          읍, 면 또는 동 이름으로 우편번호를 검색하세요.
+      </p>
+      <p>
+          <input id="eupmyundong" name="eupmyundong" type="text" class="input required" minlength="7" style="width:110px" />
+          <button id="post-number-search-button" >주소검색</button>
+      </p>
+      <br /><br />
+      <p>
+          <select id="address-select" multiple="multiple"  style="width: 400px; height : 200px;">
+
+          </select>
+      </p>
+  </div>
+</body>
+</html>
+

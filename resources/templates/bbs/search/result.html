@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="~{decorators/manty/list}">
+<head>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $("#search-button").on('click', function(){
+                search();
+            });
+
+            $("#tbody-list>tr").on('click', function(){
+                location.href="/bbs/detail/"+$(this).attr("bbs-type-name")+"?id="+$(this).attr("id");
+            });
+        });
+        function moveToPage(pageIndex){
+            $("#pageIndex").val(pageIndex);
+            $("#search-form").attr("action","/bbs/search");
+            $("#search-form").submit();
+        }
+
+        function search(){
+            $("#pageIndex").val(1);
+            $("#search-form").submit();
+        }
+    </script>
+</head>
+
+<body>
+<th:block layout:fragment="content">
+    <div class="row">
+        <div class="col-md-8">
+            <h3>
+                <span class="glyphicon glyphicon-list" ></span>
+                검색 <span class="hidden-sm hidden-xs">|</span> <small class="hidden-sm hidden-xs">검색 결과</small>
+            </h3>
+        </div>
+    </div>
+
+    <hr />
+    <div class="alert alert-success alert-dismissible animated fadeInDown" role="alert">
+        <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <strong>Notice!</strong> 보호된 컨텐츠는 검색으로 조회되지 않습니다.
+    </div>
+    <form class="form-inline" method="get" id="search-form">
+        <input name="pageIndex" id="pageIndex" type="hidden" th:value="${searchVO.pageIndex}"/>
+        <input name="searchKeyword" id="search-keyword" type="hidden" th:value="${searchVO.searchKeyword}"/>
+    </form>
+
+        <!-- table -->
+        <div>
+            <table class="table table-hover" summary="목록보기">
+                <thead>
+                <tr class="active">
+                    <th class="hidden-sm hidden-xs">순번</th>
+                    <th>제목</th>
+                    <th class="hidden-sm hidden-xs">조회수</th>
+                    <th class="hidden-sm hidden-xs">등록자</th>
+                    <th class="hidden-sm hidden-xs">등록일</th>
+                </tr>
+                </thead>
+                <tbody id="tbody-list">
+                    <tr th:each="bbs :${list}"
+                        th:id="${bbs.id}"
+                        th:attr="author=${bbs.regUsername},bbs-type-name=${bbs.bbsTypeName}"
+                        class="text-muted">
+                        <td class="hidden-sm hidden-xs" th:text="${bbs.id}">5</td>
+                        <td class="">
+                            <p>
+                                <th:block th:if="${bbs.fromDate != null}" >
+                                    [<span th:text="${#calendars.format(bbs.fromDate,'yyyy-MM-dd')}">2020-01-01</span>~<span th:text="${#calendars.format(bbs.toDate,'yyyy-MM-dd')}">2020-01-01</span>]
+                                </th:block>
+                                <span th:text="${bbs.title}">title</span>
+                                <th:block th:if="${bbs.commentCount != 0}" >
+                                    [<span th:text="${bbs.commentCount}"></span>]
+                                </th:block>
+                                &nbsp;
+                                <th:block th:each="tag :${bbs.bbsTags}">
+                                    <span class="label label-success" th:text="${tag.name}">big things</span>
+                                </th:block>
+                            </p>
+                            <small class="hidden-lg hidden-md">
+                                <span th:text="${bbs.displayUsername}"></span> |
+                                <span th:text="${bbs.regDate}"></span> |
+                                조회:<span th:text="${bbs.readCount}"></span>
+                            </small>
+                        </td>
+                        <td class="hidden-sm hidden-xs col-md-1 center" th:text="${bbs.readCount}">10</td>
+                        <td class="hidden-sm hidden-xs col-md-2 center" th:text="${bbs.displayUsername}">admin</td>
+                        <td class="hidden-sm hidden-xs col-md-2 center">
+                            <span th:text="${#calendars.format(bbs.regDate,'yyyy-MM-dd')}"></span>
+                            <br />
+                            <span th:text="${#calendars.format(bbs.regDate,'HH:mm:ss')}"></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- //table -->
+        <!-- 페이지번호 -->
+        <div class="row">
+            <div class="col-md-3 col-sm-4 col-xs-3 " ></div>
+            <div class="col-md-6 col-sm-4 col-xs-6 " >
+                <ul class="pagination">
+                    <div th:insert="~{decorators/manty/common/pagination :: pagination}" ></div>
+                </ul>
+            </div>
+            <div class="col-md-3 col-sm-4 col-xs-3 " ></div>
+        </div>
+</th:block>
+</body>
+</html>

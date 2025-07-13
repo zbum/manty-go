@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="decorators/manty/list">
+<head>
+    <link th:href="@{//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css}" rel="stylesheet">
+    <link th:href="@{/summernote/summernote.css}" rel="stylesheet">
+    <script th:src="@{/summernote/summernote.min.js}"></script>
+
+    <script type="text/javascript">
+	    $(document).ready(function(){
+	    });
+	</script>
+</head>
+
+<body>
+<th:block layout:fragment="content">
+    <h3>
+        <i class="fa fa-user"></i>
+        회원가입 활성화 | <small> 수신 받은 이메일에서 활성화 링크를 클릭해 주세요.</small>
+    </h3>
+
+    <hr />
+    <h4>축하합니다. 등록한 이메일로 회원 활성 링크를 전송하였습니다. 이메일을 확인 해 주세요.</h4>
+    <small> PS. 사이트가 유명하지 않아서 그런지... 전송한 메일이 스팸함으로 자주 빠진다고 합니다. 스팸함에서도 찾아보세요. ^^</small>
+    <br /><br /><br />
+
+    <form action="/user/resendEmail" method="post" >
+        <input type="hidden" name="username" th:value="${user.username}" />
+        <div class="row">
+            <div class="col-md-12 ">
+                <button type="submit" id="resend-email-button" class="btn btn-primary"><i class="fa fa-email"></i> email 재요청 </button>
+            </div>
+        </div>
+    </form>
+</th:block>
+</body>
+</html>

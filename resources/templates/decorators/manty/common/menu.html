@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<body th:fragment="menu">
+    <div class="navbar-wrapper">
+        <div class="container">
+            <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+                <div class="container">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="/index" >
+                            <p style="font-weight:800;" th:text="${#messages.msg('title')}">MANTY SCUBA</p>
+                        </a>
+                    </div>
+                    <div class="navbar-collapse collapse">
+                        <ul class="nav navbar-nav">
+                            <li class="dropdown" id="tour-menu-li">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">다이빙투어<span class="caret"></span></a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="/bbs/list/tour">다이빙투어 공지</a></li>
+                                    <li><a href="/bbs/list/review">다이빙 후기</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown" id="edu-menu-li">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">교육<span class="caret"></span></a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="/bbs/list/eduinfo">교육정보</a></li>
+                                    <li><a href="/bbs/list/edu">교육일정</a></li>
+                                    <li><a href="/bbs/list/eduapply" >교육 문의&amp;신청</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown" id="resort-menu-li">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">다이빙리조트<span class="caret"></span></a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="/bbs/list/shop">필리핀</a></li>
+                                    <li><a href="/bbs/list/korShop" >한국</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown" id="gear-menu-li">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">다이브포럼<span class="caret"></span></a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="/bbs/list/gear">장비소개</a></li>
+                                    <li><a href="/bbs/list/gearbuy" >장비구매요청</a></li>
+                                    <li><a href="/bbs/list/forum">포럼</a></li>
+                                    <li><a href="/bbs/list/qna">Q&amp;A</a></li>
+                                </ul>
+                            </li>
+
+                            <li class="dropdown" id="bbs-menu-li">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">게시판<span class="caret"></span></a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="/bbs/list/notice"><strong>공지사항</strong></a></li>
+                                    <li><a href="/bbs/list/hello">가입인사</a></li>
+                                    <li><a href="/bbs/list/free" >자유게시판</a></li>
+                                    <li><a href="/bbs/list/gallery" >Gallery</a></li>
+                                    <li><a href="/bbs/list/develop" >개발이야기</a></li>
+                                    <li><a href="/bbs/list/nonobds" >노노부동산</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown" id="dev-menu-li">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">DevTools<span class="caret"></span></a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="/bbs/ext/base64" >Base64</a></li>
+                                    <li><a href="/bbs/ext/url" >URL Encode/Decode</a></li>
+                                    <li><a href="/bbs/ext/regex" >Regular Expression</a></li>
+                                    <li><a href="/bbs/ext/sql" >SQL Formatter</a></li>
+                                    <li class="divider"></li>
+                                    <li><a href="/bbs/ext/mime" >Mime Parsing</a></li>
+                                    <li><a href="/bbs/ext/mime-text" >Mime Header Format Parsing</a></li>
+                                    <li><a href="/bbs/ext/utf7" >Modified IMAP UTF7 Encode/Decode</a></li>
+                                    <li><a href="/bbs/ext/quoted-printable" >Quoted Printable Parsing</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <form class="navbar-form navbar-left" role="search" action="/bbs/search">
+                            <div class="form-group">
+                                <input type="text" name="searchKeyword" class="form-control" placeholder="Search">
+                            </div>
+                            <button type="submit" class="btn btn-default">검색</button>
+                        </form>
+                        <ul class="nav navbar-nav navbar-right">
+                            <li sec:authorize="!isAuthenticated()"><a href="#" data-toggle="modal" data-target="#login-modal">로그인</a></li>
+                            <th:block sec:authorize="isAuthenticated()">
+                                <li class="dropdown" id="user-menu-li">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                        <span sec:authentication="principal.username">Manty</span>
+                                        (<span sec:authentication="principal.nickname">Manty</span>)
+                                        <span class="caret"></span>
+                                    </a>
+                                    <ul class="dropdown-menu" role="menu">
+                                        <li><a href="/user/mypage">내정보</a></li>
+                                        <li class="divider"></li>
+                                        <li><a href="#" id="logout-a" >로그아웃</a></li>
+                                    </ul>
+                                </li>
+                            </th:block>
+                            <th:block sec:authorize="hasAnyRole('ROLE_ADMIN')">
+                                <li><a href="/admin/v2/users"><i class="fa fa-cogs"></i> setup</a></li>
+                            </th:block>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $("#logout-a").on('click', function(){
+                    logout();
+            });
+        });
+
+        function logout() {
+            const form = document.createElement("form");
+            form.setAttribute("method", "POST");
+            form.setAttribute("action", "/logout");
+
+            var hiddenField = document.createElement("input");
+            hiddenField.setAttribute("type", "hidden");
+            hiddenField.setAttribute("name", "${_csrf.parameterName}");
+            hiddenField.setAttribute("value", "${_csrf.token}");
+            form.appendChild(hiddenField);
+
+            document.body.appendChild(form)
+            form.submit();
+        }
+    </script>
+</body>
+</html>

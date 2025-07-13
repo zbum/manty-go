@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="~{decorators/manty/admin/basic}">
+<head>
+    <script type="text/javascript" th:inline="javascript">
+        const bbsTypeName = /*[[${bbstype.typeName}]]*/ 'gear'
+        const bbsTypeId = /*[[${bbstype.bbsTypeId}]]*/ 1
+
+        $(document).ready(function(){
+            $("#admin-menu-board").siblings("li").removeClass("active");
+            $("#admin-menu-board").addClass("active");
+
+            $("#modify-button").button({
+                icons: {
+                    secondary: "ui-icon-circle-check"
+                }
+            }).click(function(){
+                location.href = "/admin/v2/bbstypes/form/"+bbsTypeId;
+            });
+
+            $("#delete-button").button({
+                icons: {
+                    secondary: "ui-icon-circle-check"
+                }
+            }).click(function(){
+                if (!confirm("삭제하시겠습니까?")) {
+                    return false;
+                }
+                $("#delete-form").submit();
+            });
+
+            $("#list-button").button({
+                icons: {
+                    secondary: "ui-icon-circle-triangle-e"
+                }
+            }).click(function(){
+                location.href = "/admin/v2/bbstypes?id=${bbstype.bbsTypeId}";
+            });
+
+            $("#contents-iframe").on("load", function(){
+                $(this).height($(this).contents().find("body")[0].scrollHeight);
+            });
+        });
+    </script>
+</head>
+
+<body>
+<th:block layout:fragment="content">
+<form id="delete-form" method="post" action="/admin/v2/bbstype/delete.do">
+    <input type="hidden" name="id" value="${bbstype.bbsTypeId}" />
+    <input type="hidden"
+           name="${_csrf.parameterName}"
+           value="${_csrf.token}"/>
+</form>
+    <!-- Page Heading -->
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">
+                만티보드관리 <small>만티보드관리</small>
+            </h1>
+            <ol class="breadcrumb">
+                <li class="active">
+                    <i class="fa fa-dashboard"></i> 보드 목록
+                </li>
+            </ol>
+        </div>
+    </div>
+    <!-- table -->
+    <div>
+        <table class="table table-bordered" summary="글쓰기">
+            <colgroup>
+                <col width="15%" >
+                <col width="85%" >
+            </colgroup>
+            <tbody>
+            <tr>
+                <th class="active">작성자</th>
+                <td th:text="${bbstype.regUsername}"> reg name</td>
+            </tr>
+            <tr>
+                <th class="active">제목</th>
+                <td th:text="${bbstype.title}">type title</td>
+            </tr>
+            <tr>
+                <th class="active">board 식별자</th>
+                <td th:text="${bbstype.typeName}">type name</td>
+            </tr>
+            <tr>
+                <th class="active">설명</th>
+                <td th:text="${bbstype.desc}">
+                    desc
+                </td>
+            </tr>
+            <tr>
+                <th class="active">Notice</th>
+                <td th:text="${bbstype.notice}">
+                    notice contents
+                </td>
+            </tr>
+            <tr>
+                <th class="active">Type</th>
+                <td th:text="|${bbstype.type} 형|">
+                    1 형
+                </td>
+            </tr>
+            <tr>
+                <th class="active">필드 추가</th>
+                <td>
+                    <th:block th:if="${bbstype.fieldFromDate}" >From Date,   </th:block>
+                    <th:block th:if="${bbstype.fieldToDate}" >To Date</th:block>
+                </td>
+            </tr>
+            <tr>
+                <th class="active">일정 색상</th>
+                <td>
+                    <th:block th:if="${bbstype.color eq 'event-important'}" > RED   </th:block>
+                    <th:block th:if="${bbstype.color eq 'event-warning'}" > YELLOW   </th:block>
+                    <th:block th:if="${bbstype.color eq 'event-info'}" > BLUE   </th:block>
+                    <th:block th:if="${bbstype.color eq 'event-inverse'}" > BLACK   </th:block>
+                    <th:block th:if="${bbstype.color eq 'event-success'}" > GREEN   </th:block>
+                    <th:block th:if="${bbstype.color eq 'event-special'}" > WHITE   </th:block>
+                </td>
+            </tr>
+            <tr>
+                <th class="active">READ Security Type</th>
+                <td>
+                    <th:block th:if="${bbstype.securityType == 1}">모든 사람이 열람가능</th:block>
+                    <th:block th:if="${bbstype.securityType == 2}">로그인한 회원만 열람가능</th:block>
+                    <th:block th:if="${bbstype.securityType == 3}">저자와 관리자만 열람가능</th:block>
+                    <th:block th:if="${bbstype.securityType == 4}">저자가 비밀글 여부 선택</th:block>
+                </td>
+            </tr>
+            <tr>
+                <th class="active">WRITE Security Type</th>
+                <td>
+                    <th:block th:if="${bbstype.writeSecurityType == 1}">모든 사람이 등록 가능</th:block>
+                    <th:block th:if="${bbstype.writeSecurityType == 2}">로그인한 회원만 등록 가능</th:block>
+                </td>
+            </tr>
+            <tr>
+                <th class="active">URL</th>
+                <td>
+                    <a th:href="@{/bbs/list/{bbsTypeName}(bbsTypeName=${bbstype.typeName})}" th:text="|http://host:port/bbs/list/${bbstype.typeName}|"></a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- //table -->
+
+    <div sec:authorize="hasAnyRole('ROLE_ADMIN')">
+        <div class="row">
+            <div class="col-md-9"></div>
+            <div class="col-md-3 text-right">
+                <button type="button" class="btn btn-primary" id="modify-button">수정</button>
+                <button type="button" class="btn btn-primary" id="delete-button">삭제</button>
+                <button type="button" class="btn btn-primary" id="list-button">목록</button>
+            </div>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

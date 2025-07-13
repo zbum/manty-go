@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="~{decorators/manty/no_right}" lang="ko">
+<head>
+    <title>MIME Parser</title>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $('#parse-button').on('click', function(){
+                if ($('#eml').val()) {
+                    const frm = $('#frm');
+                    frm.attr("action", "/bbs/ext/mime/plain");
+                    frm.attr("target", "plain_iframe");
+                    frm.submit();
+
+                    frm.attr("action", "/bbs/ext/mime/html");
+                    frm.attr("target", "html_iframe");
+                    frm.submit();
+
+                    frm.attr("action", "/bbs/ext/mime/bodystructure");
+                    frm.attr("target", "bodystructure_iframe");
+                    frm.submit();
+
+                    const data = new FormData(frm[0]);
+                    $.ajax({
+                        type: "POST",
+                        enctype: 'multipart/form-data',
+                        url: "/bbs/ext/mime/header",
+                        data: data,
+                        processData: false,
+                        contentType: false,
+                        cache: false,
+                        timeout: 600000,
+                        success: function (data) {
+                            $('#subject').html(data.data.subject);
+                        },
+                        error: function (e) {
+                            console.log("ERROR : ", e);
+                        }
+                    });
+                }else{
+                    alert("file을 선택해 주세요.");
+                }
+            });
+
+        })
+    </script>
+</head>
+
+<body>
+<th:block layout:fragment="content">
+    <h3>
+        <i class="fa fa-user"></i>
+        Mime Parser | <small> Mime Parser </small>
+    </h3>
+    <br />
+
+    <div>
+        <form id="frm" method="post" action="/bbs/ext/mime/html" enctype="multipart/form-data" target="html_iframe">
+            <input type="hidden"
+                   name="${_csrf.parameterName}"
+                   value="${_csrf.token}"/>
+            <div class="form-group">
+                <label for="eml">MIME File(eml)</label>
+                <input type="file" class="form-control" name="eml" id="eml" accept=".eml"/>
+            </div>
+
+            <div class="row">
+                <div class="col-md-9"></div>
+                <div class="col-md-3 text-right">
+                    <button type="button" id="parse-button" class="btn btn-default">Parse HTML</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="form-group">
+            <label for="subject">Subject</label>
+            <div class="form-control" ><span id="subject"></span></div>
+        </div>
+
+        <div class="form-group">
+            <label for="bodystructure_iframe">Body Structure</label>
+            <iframe class="form-control" name="bodystructure_iframe" id="bodystructure_iframe" style="height: 100px;"></iframe>
+        </div>
+
+        <div class="form-group">
+            <label for="html_iframe">text/html</label>
+            <iframe class="form-control" name="html_iframe" id="html_iframe" style="height: 300px;"></iframe>
+        </div>
+
+        <div class="form-group">
+            <label for="plain_iframe">text/plain</label>
+            <iframe class="form-control" name="plain_iframe" id="plain_iframe" style="height: 300px;"></iframe>
+        </div>
+
+    </div>
+
+</th:block>
+</body>
+</html>

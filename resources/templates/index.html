@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="~{decorators/manty/basic}">
+<head>
+    <style type="text/css">
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            padding-top: 30px; height: 0; overflow: hidden;
+        }
+
+        .video-container iframe,
+        .video-container object,
+        .video-container embed {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #gallery-div .item{
+            margin: 3px;
+        }
+        #gallery-div .item img{
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+    </style>
+
+    <script type="application/javascript">
+        $(document).ready(function() {
+            $("#gallery-div").owlCarousel({
+                autoPlay: 300000, //Set AutoPlay to 3 seconds
+                items : 3,
+                itemsDesktop : [1199,3],
+                itemsDesktopSmall : [979,3]
+            });
+        });
+    </script>
+</head>
+<body>
+<th:block layout:fragment="content">
+<!--center-->
+<div class="col-lg-8 col-md-8 col-sm-9 col-xs-12 main">
+    <div class="row">
+        <div class="col-xs-12" >
+            <h3><small><i class="fa fa-picture-o"></i></small> Gallery </h3>
+            <hr class="hidden-xs" />
+            <div id="gallery-div" class="image-gallery" >
+                <div class="item" th:if="${bbs.firstImageUrl != null}" th:each="bbs: ${galleryList}">
+                    <a th:href="@{/bbs/detail/gallery(id=${bbs.id.id})}">
+                        <img th:src="${bbs.firstImageUrl}" alt="Owl Image">
+                    </a>
+                </div>
+            </div>
+            <br class="hidden-xs"/>
+            <br class="hidden-xs"/>
+            <div class="pull-right">
+                <p class="lead"><button class="btn btn-default btn-sm" onclick="location.href='/bbs/list/gallery'"><span class="glyphicon glyphicon-search"></span> 더보기</button></p>
+            </div>
+            <br />
+        </div>
+    </div>
+
+    <h3 class="hidden-xs"><small><i class="fa fa-edit"></i></small> 최근 글 </h3>
+    <hr  class="hidden-xs" />
+    <th:block th:each="bbs : ${bbsList}">
+        <div class="row">
+            <div class="col-xs-12" >
+                <h4 th:onclick="'location.href=\'' + @{/bbs/detail/{bbsTypeName}(id=${bbs.id},bbsTypeName=${bbs.bbsTypeName})} +'\''" style="cursor: pointer;">
+                    <th:block th:if="${not #lists.isEmpty(bbs.fromDate)}" >[<span th:text="${#calendars.format(bbs.fromDate,'yyyy-MM-dd')}">2020-01-01</span>~<span th:text="${#calendars.format(bbs.toDate,'yyyy-MM-dd')}">2020-01-02</span>] </th:block>
+                    <span th:text="${bbs.title}"></span>
+                </h4>
+                <br />
+                <div class="row pull-right">
+                    <span class="label label-primary" style="cursor: pointer;" th:onclick="'location.href=\'' + @{/bbs/list/{bbsTypeName}(bbsTypeName=${bbs.bbsTypeName})} +'\''" th:text="${bbs.bbsTypeTitle}"></span>
+                    <th:block th:each="tag : ${bbs.bbsTags}" >
+                        <span class="label label-success" th:text="${tag.name}"></span>
+                    </th:block>
+                </div>
+                <ul class="list-inline">
+                    <li><a href="#" th:text="${#calendars.format(bbs.regDate,'yyyy-MM-dd HH:mm')}"></a></li>
+                    <li><a href="#" th:onclick="'location.href=\'' + @{/bbs/detail/{bbsTypeName}(bbsTypeName=${bbs.bbsTypeName},id=${bbs.id},scroll=comment)} + '\''"><i class="glyphicon glyphicon-comment"></i> <span th:text="${bbs.commentCount}"></span> Comments</a></li>
+                </ul>
+            </div>
+        </div>
+        <hr />
+    </th:block>
+</div>
+
+<!--right-->
+<div class="col-lg-3 col-md-4 col-sm-3 col-lg-offset-1 hidden-sm hidden-xs hidden-tablet" style="overflow: auto">
+    <h4><small><i class="fa fa-edit"></i></small> 정보</h4>
+
+    <div th:insert="~{decorators/manty/common/edulist :: edulist}" ></div>
+
+    <div class="panel panel-success">
+        <div class="panel-heading"><i class="fa fa-plane"></i> 다이빙 투어 일정 </div>
+        <div class="panel-body">
+            <th:block  th:each="tourBbs : ${tourBbsList}">
+            <span style="display:inline-block; width:100%;white-space: nowrap;overflow:hidden !important;text-overflow: ellipsis;" >
+                - <a style="color:#333333;" th:href="@{/bbs/detail/tour(id=${tourBbs.id.id})}"
+                     th:if="${tourBbs.fromDate != null}"
+                     th:text="|[${#calendars.format(tourBbs.fromDate,'yyyy-MM-dd')}] ${tourBbs.title}|">
+                </a>
+                <a style="color:#333333;" th:href="@{/bbs/detail/tour(id=${tourBbs.id.id})}"
+                   th:if="${tourBbs.fromDate == null}"
+                   th:text="${tourBbs.title}">
+                </a>
+            </span>
+            <br />
+            </th:block>
+        </div>
+    </div>
+
+    <div th:insert="~{decorators/manty/common/adfit :: adfit}" ></div>
+
+    <h4><small><i class="fa fa-edit"></i></small> 강사진 </h4>
+    <div class="panel panel-primary">
+        <div class="panel-heading"><i class="fa fa-user-plus"></i> 강사진 연락처 </div>
+        <div class="panel-body">
+                        <span style="display:inline-block; width:100%;white-space: nowrap;overflow:hidden !important;text-overflow: ellipsis;" >
+                       - <strong>만강사 (PADI OWSI #316257)</strong><br />
+                        &nbsp;&nbsp;&nbsp; <img class="" src="/images/ext/kakaolink_btn_medium.png" style="height:14px;" /> mantyscuba ,
+                        &nbsp; <i class="fa fa-envelope-o"></i>  jibum.jung@gmail.com <br /><br />
+                        - <strong>Jayden 강사 (PADI IDC STAFF INST. #316253)</strong>  <br />
+                        &nbsp;&nbsp;&nbsp; <img class="" src="/images/ext/kakaolink_btn_medium.png" style="height:14px;" /> lazyparrot ,
+                        &nbsp; <i class="fa fa-envelope-o"></i> raycarer@naver.com <br /><br />
+                        - <strong>라온강사 (PADI OWSI #316254) </strong> <br />
+                        &nbsp;&nbsp;&nbsp; <img class="" src="/images/ext/kakaolink_btn_medium.png" style="height:14px;" /> raonzana ,
+                        &nbsp; <i class="fa fa-envelope-o"></i> kainwin@naver.com <br />
+                        </span>
+            <br />
+        </div>
+    </div>
+</div>
+
+<br class="hidden-xs"/>
+<br class="hidden-xs"/>
+<br class="hidden-xs"/>
+
+</th:block>
+</body>
+</html>

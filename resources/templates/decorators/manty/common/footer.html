@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body th:fragment="footer">
+    <footer class="footer" style="background-color: #0f0f0f; color: #FFFFFF;" >
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-2 col-md-2 col-sm-2 col-xs-5 col-lg-offset-1 col-sm-offset-0 col-xs-offset-0" >
+                    <img src="/images/ext/manty_logo_2019_white.png" width="140px" height="140px"/>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-3 hidden-xs" >
+                    <h4>SCUBA</h4>
+                    <H5 style="font-weight: normal; cursor: pointer; color: rgba(255,255,255,0.7)" onclick="location.href='/bbs/list/tour'">다이빙 투어 계획</H5>
+                    <H5 style="font-weight: normal; cursor: pointer; color: rgba(255,255,255,0.7)" onclick="location.href='/bbs/list/review'">다이빙 투어 후기</H5>
+                    <H5 style="font-weight: normal; cursor: pointer; color: rgba(255,255,255,0.7)" onclick="location.href='/bbs/list/edu'">다이빙 교육 일정</H5>
+                </div>
+                <div class="col-lg-3 col-md-4 col-sm-4 hidden-xs" >
+                    <h4>DEVELOPERS</h4>
+                    <H5 style="font-weight: normal; cursor: pointer; color: rgba(255,255,255,0.7)" onclick="location.href='/bbs/list/develop'">개발이야기</H5>
+                    <H5 style="font-weight: normal; cursor: pointer; color: rgba(255,255,255,0.7)" onclick="location.href='/bbs/ext/base64'" >BASE64 Decoder/Encoder</H5>
+                    <H5 style="font-weight: normal; cursor: pointer; color: rgba(255,255,255,0.7)" onclick="location.href='/bbs/ext/url'" >URL Decoder/Encoder</H5>
+                    <H5 style="font-weight: normal; cursor: pointer; color: rgba(255,255,255,0.7)" onclick="location.href='/bbs/ext/regex'" >Regular Expression Tool</H5>
+                    <H5 style="font-weight: normal; cursor: pointer; color: rgba(255,255,255,0.7)" onclick="location.href='/bbs/ext/mime'" >Online Mime Parser</H5>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-3 col-xs-7" >
+                    <h4>ABOUT</h4>
+                    <H5 style="font-weight: normal; color: rgba(255,255,255,0.7)">개발 : 만티 ( <a href="mailto:jibum.jung@gmail.com">jibum.jung@gmail.com</a> )</H5>
+                    <H5 style="font-weight: normal; color: rgba(255,255,255,0.7)">디자인 : 만티스쿠바 패밀리 & 만티 강사 </H5>
+                    <H5 style="font-weight: normal; color: rgba(255,255,255,0.7)">
+                    Using <a href="http://getbootstrap.com/">Bootstrap</a>,
+                        <a href="https://github.com/nhnent/tui.editor/">tui.editor</a> and
+                        <a href="https://spring.io/projects/spring-boot">Spring Boot 3.0</a>.
+                    </H5>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

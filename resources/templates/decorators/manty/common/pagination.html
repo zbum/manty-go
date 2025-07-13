@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body th:fragment="pagination">
+<!-- pagination -->
+<ul class="pagination">
+    <li><a href="#" th:onclick="|javascript:moveToPage('${paginationInfo.previousPageNo}'); return false;|">&laquo;</a></li>
+    <th:block th:each="inx: ${#numbers.sequence(paginationInfo.firstPageNoOnPageList, paginationInfo.lastPageNoOnPageList)}">
+        <th:block th:if="${inx != paginationInfo.currentPageNo}" >
+            <li><a href="#" th:onclick="|javascript:moveToPage(${inx}); return false;|" th:text="${inx}">1</a></li>
+        </th:block>
+        <th:block th:if="${inx == paginationInfo.currentPageNo}" >
+            <li class="active"><a href="#" th:text="${inx}">1 <span class="sr-only">(current)</span></a></li>
+        </th:block>
+    </th:block>
+    <li><a href="#" th:onclick="|javascript:moveToPage('${paginationInfo.nextPageNo}'); return false;|">&raquo;</a></li>
+</ul>
+</body>
+</html>

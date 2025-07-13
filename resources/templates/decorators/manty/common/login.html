@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body th:fragment="login">
+    <div class="modal fade" id="login-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form role="form" action="/login" method="post" autocomplete="off">
+                    <input type="hidden"
+                           name="${_csrf.parameterName}"
+                           value="${_csrf.token}"/>
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title" id="myModalLabel">로그인</h4>
+                    </div>
+
+                    <div class="modal-body">
+<!--                        <button type="button" id="facebook-login-button" class="btn btn-primary btn-block btn-social" style="text-align: left;" onclick="javascript:fbLogin();">-->
+<!--                            <img src="/images/manty/login/f-logo.png"> &nbsp; Facebook 아이디로 로그인-->
+<!--                        </button>-->
+                        <button type="button" id="google-login-button" class="btn btn-block btn-social" style="border-color: #e1e1e1;background-color:#FFFFFF; color:#000000;text-align: left;" onclick="location.href='/oauth2/authorization/google';">
+                            <img src="/images/manty/login/g-logo.png">&nbsp;&nbsp; Google 아이디로 로그인
+                        </button>
+                        <button type="button" id="github-login-button" class="btn btn-block btn-social" style="background-color:#000000; color:#FFFFFF;text-align: left;" onclick="location.href='/oauth2/authorization/github';">
+                            <img src="/images/manty/login/github-logo.png">&nbsp;&nbsp;&nbsp;GitHub 아이디로 로그인
+                        </button>
+                        <button type="button" id="naver-login-button" class="btn btn-block btn-social" style="background-color:#1ec800; color:#ffffff;text-align: left;" onclick="javascript:nvLogin();">
+                            <img src="/images/manty/login/naver-logo.png">&nbsp;&nbsp;&nbsp;네이버 아이디로 로그인
+                        </button>
+                        <br />
+                        <p class="apollo-seperator"> or </p>
+
+                        <div id="login-form-div" >
+                            <div class="form-group">
+                                <input type="text" class="form-control" name="username" id="j-username-text" placeholder="Email Address">
+                            </div>
+                            <div class="form-group">
+                                <input type="password" class="form-control" name="password" id="j-password-text" placeholder="Password">
+                            </div>
+                            <div class="checkbox">
+                                <label for="remember-me-checkbox">
+                                    <input type="checkbox" name="remember-me" id="remember-me-checkbox" placeholder="로그인 유지" /> 로그인 유지
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                    <button type="submit" id="email-login-button" class="btn btn-danger"  style="display: block; width: 100%;" ><em class="fa fa-at"></em> MANTY SCUBA 아이디로 로그인 </button>
+                            </div>
+
+                            <div class="form-group">
+                                <p>로그인이 실패하나요? <a href="/user/findidpw">패스워드찾기</a>로 오세요.</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <p>아직 가입하지 않으셨나요? <a href="/user/signup">회원가입</a>을 해주세요.</p>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" th:inline="javascript">
+        const paramLogin = /*[[${param.login}]]*/ 'fail'
+
+        $(document).ready(function(){
+            /*[# sec:authorize="!isAuthenticated()"]*/
+            if( paramLogin == "fail") {
+                alert("다시 로그인 해 주세요.")
+                $('#login-modal').modal('show')
+            }
+            /*[/]*/
+
+            $("#email-login-button").on('click', function(){
+                $("#login-form-div").show()
+            })
+        })
+    </script>
+
+</body>
+</html>

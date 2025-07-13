@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="~{decorators/manty/no_right}" lang="ko">
+<head>
+    <title>SQL Formatter</title>
+
+    <link rel="stylesheet" th:href="@{/bower_components/highlightjs/styles/sunburst.css}">
+    <script th:src="@{/bower_components/highlightjs/highlight.pack.js}"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $("#format-button").on('click', function(){
+                $.post("/bbs/ext/sql/format",
+                    "raw="+encodeURIComponent($("#raw").val())+"&params="+encodeURIComponent($("#params").val()),
+                    function(data) {
+                        $("#formatted").html(data);
+                        $('pre code').each(function(i, block) { hljs.highlightBlock(block); });
+                    }
+                )
+            });
+        })
+    </script>
+</head>
+
+<body>
+<th:block layout:fragment="content">
+<ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item active">
+        <a class="nav-link active" data-toggle="tab" href="#home" role="tab">SQL Formatter</a>
+    </li>
+</ul>
+<div class="tab-content">
+    <div class="tab-pane active" id="home" role="tabpanel">
+        <h3>
+            <i class="fa fa-user"></i>
+            SQL Formatter | <small> SQL Formatter </small>
+        </h3>
+        <br />
+
+        <div>
+            <form>
+                <div class="form-group">
+                    <label for="raw">SQL Strings</label>
+                    <textarea class="form-control" name="raw" id="raw" rows="10"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="params">SQL Params</label>
+                    <textarea class="form-control" name="params" id="params" placeholder="ex) ['true',1,2,3]" rows="3"></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-9"></div>
+                    <div class="col-md-3 text-right">
+                        <button type="button" id="format-button" class="btn btn-default">Format</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="formatted">Formatted SQL</label>
+                    <pre  style="min-height: 110%">
+                        <code class="sql" name="formatted" id="formatted" ></code>
+                    </pre>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+</th:block>
+</body>
+</html>

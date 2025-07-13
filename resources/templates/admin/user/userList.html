@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="~{decorators/manty/admin/basic}">
+<head>
+    <title>Untitled Document</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <script type="text/javascript" src="/js/jsrender.js"></script>
+    <script id="dialog-template" type="text/x-jsrender">
+        <table width="675" border="0" cellspacing="0" cellpadding="0">
+            <tr>
+                <td width="130" height="32" class="FB_org">아이디(닉네임)</td>
+                <td width="545">
+                    <span style="padding:0 0 0 10">
+                        {{>username}} ({{>nickname}})
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+            </tr>
+            <tr>
+                <td width="130" height="32" class="FB_org">이름(영문이름)</td>
+                <td width="545">
+                    <span style="padding:0 0 0 10">
+                        {{>koreanName}}({{>engName}})
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+            </tr>
+            <tr>
+                <td width="130" height="32" class="FB_org">연락처</td>
+                <td width="545">
+                    <span style="padding:0 0 0 10">
+                        {{>phoneNumber}}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+            </tr>
+            <tr>
+                <td width="130" height="32" class="FB_org">주소</td>
+                <td width="545">
+                    <span style="padding:0 0 0 10">
+                        {{>address}} {{>addressDetail}}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+            </tr>
+            <tr>
+                <td width="130" height="32" class="FB_org">영문 주소</td>
+                <td width="545">
+                    <span style="padding:0 0 0 10">
+                        {{>engAddress}}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+            </tr>
+            <tr>
+                <td width="130" height="32" class="FB_org">생년월일</td>
+                <td width="545">
+                    <span style="padding:0 0 0 10">
+                        {{:~dateFormat(birthDate)}}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+            </tr>
+            <tr>
+                <td width="130" height="32" class="FB_org">이메일</td>
+                <td width="545">
+                    <span style="padding:0 0 0 10">
+                        {{>email}}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+            </tr>
+            <tr>
+                <td width="130" height="32" class="FB_org">여권번호</td>
+                <td width="545">
+                    <span style="padding:0 0 0 10">
+                        {{>passportNumber}}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td height="1" colspan="2" bgcolor="#e7e7e7"></td>
+            </tr>
+        </table>
+    </script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#admin-menu-user").siblings("li").removeClass("active");
+            $("#admin-menu-user").addClass("active");
+
+            $("#searchBtn").click(function () {
+                search();
+            });
+
+            $("#gradeSubmit").button().click(function () {
+                if ( !confirm("등급을 변경 하시겠습니까?") )   {
+                    return;
+                }
+                document.frm.method = "POST";
+                document.frm.action = "/admin/v2/users/modifyUsersGrade.do";
+                document.frm.submit();
+            });
+
+            $("#tbody-list>tr>td>button").button({
+                icons: {
+                    secondary: "ui-icon-newwin"
+                }
+            }).click(function () {
+                $.ajax("/admin/v2/users/user.do?username="+$(this).attr("username")).done(function(data){
+                    $("#dialog-message").html($("#dialog-template").render(data, {dateFormat:dateFormat}));
+                    $("#dialog-message").dialog({width: "700px"});
+                });
+                return false;
+            });
+        });
+        function moveToPage(pageIndex) {
+            $("#pageIndex").val(pageIndex-1)
+            document.frm.action = "/admin/v2/users"
+            document.frm.submit()
+        }
+
+        function search() {
+            $("#pageIndex").val(1);
+            document.frm.submit();
+        }
+
+        function dateFormat(dateString) {
+            var returnStr = "";
+            returnStr += dateString.substring(0,4);
+            returnStr += "-";
+            returnStr += dateString.substring(4,6);
+            returnStr += "-";
+            returnStr += dateString.substring(6,8);
+            return returnStr;
+        }
+    </script>
+    <style>
+        #tbody-list tr:hover {
+            background-color: #f2f2f2;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+<th:block layout:fragment="content">
+    <form th:object="${frm}" name="frm" method="get">
+
+        <!-- Page Heading -->
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">
+                    사용자관리 <small>사용자관리</small>
+                </h1>
+                <ol class="breadcrumb">
+                    <li class="active">
+                        <i class="fa fa-dashboard"></i> 사용자 목록
+                    </li>
+                </ol>
+            </div>
+        </div>
+        <!-- /.row -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-striped">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>닉네임</th>
+                            <th>가입일자</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="user :${users}">
+                                <td th:text="${user.username}">admin</td>
+                                <td th:text="${user.nickname}">manty</td>
+                                <td th:text="${#temporals.format(user.regDate,'yyyy-MM-dd HH:mm:ss')}">2020-10-10 21:50:49</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <input name="pageIndex" id="pageIndex" type="hidden" value="0"/>
+
+
+        <!-- 페이지번호 -->
+        <div class="row">
+            <div class="col-md-4 col-sm-4 col-xs-3 " ></div>
+            <div class="col-md-4 col-sm-4 col-xs-6 " >
+                <ul class="pagination">
+                    <div th:insert="~{decorators/manty/common/pagination :: pagination}" ></div>
+                </ul>
+            </div>
+            <div class="col-md-4 col-sm-4 col-xs-3 " ></div>
+        </div>
+    </form>
+
+    <div id="dialog-message" title="사용자 상세정보" style="display:none">
+
+    </div>
+</th:block>
+</body>
+</html>

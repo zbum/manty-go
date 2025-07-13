@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="~{decorators/manty/admin/basic}">
+<head>
+    <script type="text/javascript">
+	    $(document).ready(function(){
+            $("#admin-menu-board").siblings("li").removeClass("active");
+            $("#admin-menu-board").addClass("active");
+
+            $("#regist-button").button({
+                icons: {
+                    secondary: "ui-icon-circle-check"
+                }
+            }).click(function(){
+                if ( !$("#title-input").val() ){
+                    alert("제목은 필수입력 입니다.");
+                    $("#title-input").focus();
+                    return false;
+                }
+                $("#bbs-form").submit();
+                return false;
+            });
+            $("#cancel-button").button({
+                icons: {
+                    secondary: "ui-icon-circle-triangle-e"
+                }
+            }).click(function(){
+                location.href = "/admin/v2/bbstypes";
+            });
+
+	    });
+	</script>
+</head>
+
+<body>
+<th:block layout:fragment="content">
+    <!-- Page Heading -->
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">
+                만티보드관리 <small>만티보드관리</small>
+            </h1>
+            <ol class="breadcrumb">
+                <li class="active">
+                    <i class="fa fa-dashboard"></i> 보드 목록
+                </li>
+            </ol>
+        </div>
+    </div>
+        <form th:object="${bbstype}" name="bbstype" id="bbs-form" method="post" th:action="@{/admin/v2/bbstypes}">
+            <input type="hidden" th:field="*{bbsTypeId}" />
+            <input type="hidden"  th:field="*{useYn}" value="true" />
+            <!-- table -->
+            <div>
+                <table class="table table-bordered" summary="글쓰기">
+                    <colgroup>
+                        <col width="30%" />
+                        <col width="70%" />
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <th>작성자</th>
+                            <td sec:authentication="principal.username">user</td>
+                        </tr>
+                        <tr>
+                            <th>board 식별자 <em>*</em></th>
+                            <td>
+                                <input th:field="*{typeName}" type="text" class="input" id="type-name-input" style="width:500px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>제목 <em>*</em></th>
+                            <td>
+                                <input th:field="*{title}" type="text" class="input" id="title-input" style="width:500px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>1 Level Navigation  <em>*</em></th>
+                            <td>
+                                <input th:field="*{level1Navi}" type="text" class="input" id="level1Navi-input" style="width:500px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>설명 <em>*</em></th>
+                            <td>
+                                <input th:field="*{desc}" type="text" class="input" id="desc-input" style="width:500px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Notice <em></em></th>
+                            <td>
+                                <input th:field="*{notice}" type="text" class="input" id="notice-input" style="width:500px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>필드 추가</th>
+                            <td>
+                                <checkbox th:field="*{fieldFromDate}" />From Date,
+                                <checkbox th:field="*{fieldToDate}" />To Date
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>일정 색상</th>
+                            <td>
+                                <select th:field="*{color}" id="color-select">
+                                    <option value="event-important" label="RED" />
+                                    <option value="event-warning"   label="YELLOW" />
+                                    <option value="event-info"      label="BLUE" />
+                                    <option value="event-inverse"   label="BLACK" />
+                                    <option value="event-success"   label="GREEN" />
+                                    <option value="event-special"   label="WHITE" />
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>type <em>*</em></th>
+                            <td>
+                                <select th:field="*{type}" id="type-select">
+                                    <option value="1" label="1형" />
+                                    <option value="2" label="2형(Picture List)" />
+                                    <option value="3" label="3형(Gallery)" />
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>READ Security Type <em>*</em></th>
+                            <td>
+                                <select th:field="*{securityType}" id="security-type-select">
+                                    <option value="1" label="모든 사람이 열람가능" />
+                                    <option value="2" label="로그인한 회원만 열람가능" />
+                                    <option value="3" label="저자와 관리자만 열람가능" />
+                                    <option value="4" label="저자가 비밀글 여부 선택" />
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>WRITE Security Type <em>*</em></th>
+                            <td>
+                                <select th:field="*{writeSecurityType}" id="write-security-type-select">
+                                    <option value="1" label="모든 사람이 등록 가능" />
+                                    <option value="2" label="로그인한 회원만 등록 가능" />
+                                </select>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- //table -->
+	    </form>
+
+    <div sec:authorize="hasAnyRole('ROLE_ADMIN')">
+        <div class="row">
+            <div class="col-md-9"></div>
+            <div class="col-md-3 text-right">
+                <button type="button" class="btn btn-primary" id="regist-button">등록</button>
+                <button type="button" class="btn btn-primary" id="cancel-button">취소</button>
+            </div>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

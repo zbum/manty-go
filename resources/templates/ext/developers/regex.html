@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="~{decorators/manty/no_right}" lang="ko">
+<head>
+    <title>Java Regexp Tester </title>
+
+    <script th:src="@{/bower_components/mustache.js/mustache.min.js}"></script>
+
+    <script id="find-result-template" type="x-tmpl-mustache">
+{{#finds}}
+<tr>
+    <td>{{find}}</td>
+    <td>[{{start}},{{end}}] {{group}}</td>
+</tr>
+{{/finds}}
+    </script>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $("#test-button").on('click', function(){
+                $.post("/bbs/ext/regex/test",
+                    $("#regex-form").serialize(),
+                    function(data) {
+                        $("#regular-expression").text(data.regularExpression);
+                        $("#java-string").text(data.asAJavaString);
+                        $("#replacement1").text(data.replacement);
+                        $("#group-count").text(data.groupCount);
+
+                        $("#target-string").text(data.targetString);
+                        $("#matches").text(data.matches);
+                        $("#replaceFirst").text(data.replaceFirst);
+                        $("#replaceAll").text(data.replaceAll);
+                        $("#lookingAt").text(data.lookingAt);
+
+                        const template = $('#find-result-template').html();
+                        Mustache.parse(template);
+                        const render = Mustache.render(template, data);
+
+                        $("#find-result").html(render);
+                    }
+                )
+            })
+        })
+    </script>
+</head>
+
+<body>
+<th:block layout:fragment="content">
+    <h3>
+        <i class="fa fa-user"></i>
+        Java Regular Expression Test | <small> Java Regular Expression Test </small>
+    </h3>
+    <br />
+
+    <div>
+        <form id="regex-form">
+            <div class="form-group">
+                <label for="pattern-text">Regular Expression</label>
+                <textarea class="form-control" name="patternText" id="pattern-text" rows="1"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="replacement">Replacement</label>
+                <textarea class="form-control" name="replacement" id="replacement" rows="1"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="input">Target Strings</label>
+                <textarea class="form-control" name="input" id="input" rows="1"></textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-9"></div>
+                <div class="col-md-3 text-right">
+                    <button type="button" id="test-button" class="btn btn-default">Test</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <h4>
+        <i class="fa fa-user"></i>
+        Java Regular Expression Match Result
+    </h4>
+    <br />
+    <div>
+        <table class="table ">
+            <thead class="thead-inverse">
+            <tr>
+                <th>Regular Expression</th>
+                <th>as a Java String</th>
+                <th>Replacement</th>
+                <th>groupCount()</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td id="regular-expression">No result</td>
+                <td id="java-string"></td>
+                <td id="replacement1"></td>
+                <td id="group-count"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <br />
+    <div>
+            <table class="table ">
+                <thead class="thead-inverse">
+                <tr>
+                    <th>Target String</th>
+                    <th>matches()</th>
+                    <th>replaceFirst()</th>
+                    <th>replaceAll()</th>
+                    <th>lookingAt()</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td id="target-string">No result</td>
+                    <td id="matches"></td>
+                    <td id="replaceFirst"></td>
+                    <td id="replaceAll"></td>
+                    <td id="lookingAt"></td>
+                </tr>
+                </tbody>
+            </table>
+    </div>
+
+    <h4>
+        <i class="fa fa-user"></i>
+        Java Regular Expression Find Result
+    </h4>
+    <br />
+    <div>
+        <table class="table ">
+            <thead class="thead-inverse">
+            <tr>
+                <th>Find</th>
+                <th>[start(n),end(n)] group(n)</th>
+            </tr>
+            </thead>
+            <tbody id="find-result">
+            <tr>
+                <td id="index">No result</td>
+                <td id="find">No result</td>
+                <td id="detail"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</th:block>
+</body>
+</html>

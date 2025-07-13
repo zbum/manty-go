@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body th:fragment="facebook">
+    <div id="fb-root"></div>
+    <script>(function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s); js.id = id;
+        js.src = "//connect.facebook.net/ko_KR/sdk.js#xfbml=1&appId=1482286915387478&version=v2.0";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));</script>
+
+    <script>
+        function fbLogin(){
+            location.href= "/oauth2/authorization/facebook";
+        }
+
+        function fbLogout(){
+        }
+
+
+
+        // This is called with the results from from FB.getLoginStatus().
+        function statusChangeCallback(response) {
+            console.log('statusChangeCallback');
+            console.log(response);
+            if (response.status === 'connected') {
+                $("#login-menu-li").hide();
+                $("#user-menu-li").show();
+                showFBUser(response);
+            } else if (response.status === 'not_authorized') {
+                // The person is logged into Facebook, but not your app.
+                $("#login-menu-li").show();
+                $("#user-menu-li").hide();
+            } else {
+                // The person is not logged into Facebook, so we're not sure if
+                // they are logged into this app or not.
+                $("#login-menu-li").show();
+                $("#user-menu-li").hide();
+            }
+        }
+
+        function checkLoginState() {
+            FB.getLoginStatus(function(response) {
+                //statusChangeCallback(response);
+            });
+        }
+
+        window.fbAsyncInit = function() {
+            FB.init({
+                appId      : '1482286915387478',
+                cookie     : true,  // enable cookies to allow the server to access
+                // the session
+                xfbml      : true,  // parse social plugins on this page
+                version    : 'v2.1' // use version 2.1
+            });
+
+
+            FB.getLoginStatus(function(response) {
+                //statusChangeCallback(response);
+            });
+
+        };
+
+        // Load the SDK asynchronously
+        (function(d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = "//connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+
+        function signup(loginResponse) {
+            FB.api('/me', function(response) {
+    //            if ( !confirm("facebook ID ["+response.email+"]로 가입 하시겠습니까?")) {
+    //                return;
+    //            }
+                $.ajax({
+                    type : "POST",
+                    url : "/user/ajax/signup",
+                    data: {"username":response.email,"koreanName":response.name,"password":loginResponse.authResponse.accessToken},
+                    dataType : "json",
+                    success : function(results) {
+                        if ( results.errorDetail != null ) {
+                            //alert(results.errorDetail);
+                        }
+                    },
+                    error : function(XMLHttpRequest, textStatus, errorThrown) {
+                        alert("서버에 오류가 발생하였습니다.");
+                    }
+                });
+            });
+        }
+
+        function showFBUser(loginResponse) {
+    //        FB.api('/me', function(response) {
+    //            $("#facebook-user-span").text(response.name);
+    //            $("#facebook-user-img").attr("src", "//graph.facebook.com/"+response.id+"/picture??width=7&height=7");
+    //        });
+        }
+    </script>
+</body>
+</html>

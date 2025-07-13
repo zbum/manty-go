@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="decorators/manty/list">
+<head>
+    <link th:href="@{//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css}" rel="stylesheet">
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $('#email-form').bootstrapValidator({
+                trigger: 'blur submit',
+                message: 'This value is not valid',
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh'
+                },
+                fields: {
+                    username: {
+                        message: '이메일을 확인해 주세요.',
+                        validators: {
+                            notEmpty: {
+                                message: '이메일을 반드시 입력해 주세요.'
+                            },
+                            emailAddress: {
+                                message: '이메일 양식이 아닙니다.'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</head>
+
+<body>
+<th:block layout:fragment="content">
+    <h3>
+        <i class="fa fa-user"></i>
+        비밀번호 찾기 | <small> 비밀번호 찾기</small>
+    </h3>
+
+    <hr />
+    <h4>가입한 이메일을 입력하시면 수정된 패스워드를 발송합니다.</h4>
+    <br />
+
+    <form class="form-horizontal" role="form" id="email-form" method="post">
+        <div class="form-group">
+            <div class="col-md-12 ">
+                <input type="text" class="form-control" name="username" id="username-text" placeholder="email을 입력하세요.">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12 ">
+                <button type="submit" id="manty-signup-button" class="btn btn-primary" ><i class="fa fa-email"></i> 비밀번호 초기화 요청 </button>
+            </div>
+        </div>
+    </form>
+</th:block>
+
+</body>
+</html>

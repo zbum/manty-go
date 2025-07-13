@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="~{decorators/manty/iframe_contents_decorator}">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <c:if test="${!empty bbs.firstImageUrl}">
+        <meta property="og:image" th:content="|https://www.manty.co.kr${bbs.firstImageUrl}|" />
+    </c:if>
+    <c:if test="${empty bbs.firstImageUrl}">
+        <meta property="og:image" content="https://www.manty.co.kr/images/ext/manty_facebook.png" />
+    </c:if>
+    <meta property="og:url"  content="website" />
+    <meta property="og:type"  content="website" />
+    <meta property="og:title" content="${bbs.title}" />
+    <meta property="og:description" content="${bbs.shortContents}" />
+    <title>${bbs.title}</title>
+</head>
+<body style="background-image: none;">
+    ${bbs.contents}
+</div>
+</body>
+</html>

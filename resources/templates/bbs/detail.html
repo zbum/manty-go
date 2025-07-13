@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="~{decorators/manty/detail}">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <th:block th:if="${not #strings.isEmpty(bbs.firstImageUrl)}">
+        <meta property="og:image" th:content="|https://www.manty.co.kr${bbs.firstImageUrl}|" />
+    </th:block>
+    <th:block th:if="${#strings.isEmpty(bbs.firstImageUrl)}">
+        <meta property="og:image" content="https://www.manty.co.kr/images/ext/manty_logo_2019.png" />
+    </th:block>
+    <meta property="og:url"  content="website" />
+    <meta property="og:type"  content="website" />
+    <meta property="og:title" th:content="${bbs.title}" />
+    <meta property="og:description" content="" />
+    <title th:text="${bbs.title}">MANTY SCUBA</title>
+
+    <script th:src="@{/bower_components/tui-code-snippet/dist/tui-code-snippet.min.js}"></script>
+    <script th:src="@{/bower_components/markdown-it/dist/markdown-it.js}"></script>
+    <script th:src="@{/bower_components/codemirror/lib/codemirror.js}"></script>
+    <script th:src="@{/bower_components/highlightjs/highlight.pack.js}"></script>
+    <script th:src="@{/bower_components/squire-rte/build/squire-raw.js}"></script>
+    <script th:src="@{/bower_components/tui-editor/dist/tui-editor-Viewer.min.js}"></script>
+    <link rel="stylesheet" th:href="@{/bower_components/codemirror/lib/codemirror.css}">
+    <link rel="stylesheet" th:href="@{/bower_components/highlightjs/styles/github.css}">
+    <link rel="stylesheet" th:href="@{/bower_components/tui-editor/dist/tui-editor.css}">
+    <link rel="stylesheet" th:href="@{/css/tui-editor-contents-custom.css}">
+
+    <script type="text/javascript" th:inline="javascript">
+    /*<![CDATA[*/
+        const bbsTypeName = /*[[${bbsType.typeName}]]*/ 'gear'
+        const bbsId = /*[[${bbs.id}]]*/ 1
+        const regUsername = /*[[${bbs.regUsername}]]*/ 'manty@manty.co.kr'
+        const pageIndex = /*[[${searchVO.pageIndex}]]*/ 1
+
+        const passwordForm = $('#password-form')
+        const passwordIdHidden = $('#password-id-hidden')
+        const passwordModal = $('#password-modal')
+
+        /*[# sec:authorize="isAuthenticated()"]*/
+        const loginUserName = /*[[${#authentication.principal.username}]]*/ "admin"
+        /*[/]*/
+
+        $(document).ready(function(){
+            const modifyButton = $('#modify-button')
+            const deleteButton = $('#delete-button')
+            const moveButton = $('#move-button')
+            const listButton = $('#list-button')
+            const publishButton = $('#publish-button')
+            const unpublishButton = $('#unpublish-button')
+
+            /*[# sec:authorize="isAuthenticated()"]*/
+                if (loginUserName === regUsername) {
+                    modifyButton.show()
+                    deleteButton.show()
+                    /*[# th:if="${bbs.published}"]*/
+                        unpublishButton.show()
+                    /*[/]*/
+                    /*[# th:if="${not bbs.published}"]*/
+                        publishButton.show()
+                    /*[/]*/
+                }
+            /*[/]*/
+            /*[# sec:authorize="hasAnyRole('ROLE_ADMIN')"]*/
+                modifyButton.show()
+                deleteButton.show()
+
+                /*[# th:if="${bbs.published}"]*/
+                    unpublishButton.show()
+                /*[/]*/
+                /*[# th:if="${not bbs.published}"]*/
+                    publishButton.show()
+                /*[/]*/
+            /*[/]*/
+
+            /*[# sec:authorize="hasAnyRole('ROLE_ADMIN')"]*/
+                moveButton.show()
+            /*[/]*/
+            /*[# sec:authorize="!isAuthenticated()"]*/
+                /*[# th:if="${not #strings.isEmpty(bbs.password)}"]*/
+                    modifyButton.show()
+                    deleteButton.show()
+                /*[/]*/
+            /*[/]*/
+
+            $('#comment-form').bootstrapValidator({
+                trigger: 'blur submit',
+                message: 'This value is not valid',
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh'
+                },
+                fields: {
+                    comment:{
+                        message: '댓글을 입력해 주세요.',
+                        validators:{
+                            notEmpty : {
+                                message: '댓글을 입력해 주세요.'
+                            }
+                        }
+                    }
+                }
+            }).on('success.form.bv', function(e) {
+            });
+
+            modifyButton.click(function(){
+                /*[# sec:authorize="!hasAnyRole('ROLE_ADMIN')"]*/
+                    /*[# th:if="${not #strings.isEmpty(bbs.password)}"]*/
+                        displayModifyPasswordForm();
+                        return;
+                    /*[/]*/
+                /*[/]*/
+
+                location.href = '/bbs/'+bbsTypeName+'/form?id='+bbsId+'&pageIndex='+pageIndex;
+            });
+
+            deleteButton.click(function(){
+                if (!confirm("삭제하시겠습니까?")) {
+                    return false
+                }
+
+                /*[# sec:authorize="!hasAnyRole('ROLE_ADMIN')"]*/
+                    /*[# th:if="${not #strings.isEmpty(bbs.password)}"]*/
+                        displayDeletePasswordForm()
+                        return;
+                    /*[/]*/
+                /*[/]*/
+
+                $('#delete-form').submit();
+            });
+
+            listButton.click(function(){
+                location.href = '/bbs/list/'+bbsTypeName+'?pageIndex='+pageIndex;
+            });
+
+            publishButton.click(function(){
+                $.post('/bbs/publish/'+bbsTypeName+'/'+bbsId,
+                    function(data) {
+                        if ( !data.result ) {
+                            alert(data.errorDetail);
+                        }else{
+                            alert("공개 처리 되었습니다.")
+                            publishButton.hide()
+                            unpublishButton.show()
+                        }
+                    })
+            })
+
+            unpublishButton.click(function(){
+                $.post('/bbs/unpublish/'+bbsTypeName+'/'+bbsId,
+                    function(data) {
+                        if ( !data.result ) {
+                            alert(data.errorDetail);
+                        }else{
+                            alert("비공개 처리 되었습니다.")
+                            publishButton.show()
+                            unpublishButton.hide()
+                        }
+                    })
+            })
+
+
+            $(this).height($(this).contents().find("body")[0].scrollHeight);
+
+            if ("${param.scroll}" === "comment"){
+                $('html,body').animate({
+                    scrollTop:$('#comment-div').offset().top
+                }, "slow");
+            }
+
+            $('#tbody-list>tr').click(function(){
+                /*[# sec:authorize="!isAuthenticated()"]*/
+                    return;
+                /*[/]*/
+                /*[# sec:authorize="isAuthenticated()"]*/
+                    if (loginUserName == $(this).attr("author")) {
+                        $('#id-hidden').val($(this).attr('id'));
+                        $('#comment-textarea').val($(this).find('.comment').html().split('<br>').join('\n'));
+                        $('#comment-modal').modal('show');
+                    }
+                /*[/]*/
+            });
+
+            $('#tbody-list').find('a').on('click', function(event){
+                event.stopPropagation();
+            });
+
+            $.getJSON( '/bbs/api/detail/'+bbsTypeName+'/'+bbsId+'?readCount=false&newLineReplace=false&raw=true',
+                function( data ) {
+                    $('#editSection').tuiEditor('setValue', data.contents);
+            });
+        });
+        function displayDeletePasswordForm() {
+            passwordForm.attr('action', '/bbs/delete/'+bbsTypeName);
+            passwordIdHidden.val(bbsId);
+            passwordModal.modal('show');
+        }
+
+        function displayModifyPasswordForm() {
+            passwordForm.attr('action', '/bbs/password/'+bbsTypeName);
+            passwordIdHidden.val(bbsId);
+            passwordModal.modal('show');
+        }
+    /*]]>*/
+    </script>
+
+    <script lang="text/javascript">
+        $(document).ready(function(){
+            if ( '${param.delete}' === 'fail' ) {
+                alert("password 가 일치하지 않습니다. 다시 입력해 주세요." );
+
+                if ( displayDeletePasswordForm ) {
+                    displayDeletePasswordForm();
+                }
+            }
+
+            if ( '${param.modify}' === 'fail' ) {
+                alert("password 가 일치하지 않습니다. 다시 입력해 주세요." );
+
+                if ( displayModifyPasswordForm ) {
+                    displayModifyPasswordForm();
+                }
+            }
+        });
+
+    </script>
+
+    <script th:src="@{/highcharts-4.0.4/js/highcharts.js}"></script>
+    <script th:src="@{/highcharts-4.0.4/js/modules/exporting.js}"></script>
+
+</head>
+
+<body>
+<th:block layout:fragment="content">
+    <th:block th:if="${not #strings.isEmpty(bbsType.notice)}" >
+        <div class="alert alert-success alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <strong>Warning!</strong> <span th:text="${bbsType.notice}">warning!!!</span>
+        </div>
+    </th:block>
+    <form id="delete-form" method="post" th:action="@{/bbs/delete/{typeName}(typeName=${bbsType.typeName})}">
+        <input type="hidden" name="id.bbsId" th:value="${bbs.bbsId}" />
+        <input type="hidden" name="id.id" th:value="${bbs.id}" />
+        <input type="hidden" name="pageIndex" id="pageIndex" th:value="${searchVO.pageIndex}"/>
+    </form>
+
+    <h3>
+        <p>
+            <th:block th:if="${not #strings.isEmpty(bbs.fromDate)}" >
+                [<span th:text="${#calendars.format(bbs.fromDate,'yyyy-MM-dd')}">2020-01-01</span>~<span th:text="${#calendars.format(bbs.toDate,'yyyy-MM-dd')}">2020-01-01</span>]
+            </th:block>
+            <span th:text="${bbs.title}">title</span></p>
+        <br />
+        <p>
+            <small th:each="tag :${bbs.bbsTags}">
+                <span class="label label-success" th:text="${tag.name}">java</span>
+            </small>
+        </p>
+        <br />
+        <small>
+            <span th:text="${bbs.displayUsername}">displayUsername</span>
+            [last modified :
+            <th:block th:if="${not #strings.isEmpty(bbs.updateDate)}" ><span th:text="${#calendars.format(bbs.updateDate,'yyyy-MM-dd')}"></span></th:block>
+                <th:block th:if="${#strings.isEmpty(bbs.updateDate)}" ><span th:text="${#calendars.format(bbs.regDate,'yyyy-MM-dd')}"></span></th:block>]
+        </small>
+    </h3>
+
+    <div class="row" >
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" >
+
+            <th:block th:if="${#strings.equals(bbs.editorType, 'SUMMER_NOTE')}">
+                <div th:utext="${bbs.contents}"></div>
+            </th:block>
+            <th:block th:if="${#strings.equals(bbs.editorType, 'TUI_EDITOR') || #strings.equals(bbs.editorType, 'TUI_EDITOR_MK')}">
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <div id="editSection"></div>
+                    </div>
+                </div>
+                <script src="/js/tui-editor-ext/tui-editor-youtube.js"></script>
+                <script>
+                    $('#editSection').tuiEditor({
+                        initialEditType: 'wysiwyg',
+                        viewOnly: true,
+                        previewStyle: 'vertical',
+                        height: 500,
+                        exts: ['youtube']
+                    });
+                </script>
+            </th:block>
+
+            <div class="col-md-12 col-xs-12">
+                <div class="fb-like vcenter"
+                     data-href="https://www.manty.co.kr/bbs/detail/${bbsType.typeName}?id=${bbs.id}"
+                     data-share="true"
+                     data-width="250px"
+                     data-show-faces="true"
+                     style="margin-top: 20px;" >
+                </div>
+            </div>
+            <hr />
+
+            <!-- POLL START -->
+            <div th:each="poll : ${polls}">
+                <br />
+                <th:block th:if="${poll.polled}">
+                    <div class="row">
+                        <div class="col-md-7">
+                            <h3 class=""><i class="fa fa-bar-chart-o"></i> <span th:text="${poll.pollName}">poll name</span> <small th:text="|(총 ${poll.statistics.pollCount}명 설문작성)|"></small></h3>
+                            <br />
+                            <div th:id="|highchart-container-${poll.id}|" ></div>
+                            <script type="text/javascript" th:inline="javascript">
+                                const pollItems = /*[[${poll.pollitems}]]*/ []
+                                const pollId = /*[[${poll.id}]]*/ 1
+
+                                $(function () {
+                                    $('#highchart-container-'+pollId).highcharts({
+                                        chart: {
+                                            type: 'column',
+                                            height: 300,
+                                            style: {
+                                                fontFamily: 'Malgun Gothic'
+                                            }
+                                        },
+                                        title: {
+                                            text: ''
+                                        },
+                                        xAxis: {
+                                            categories: [
+                                                /*[# th:each="pollItem: ${poll.pollitems}"]*/
+                                                '[[${pollItem.name}]]',
+                                                /*[/]*/
+                                            ]
+                                        },
+                                        yAxis: {
+                                            min: 0,
+                                            title: {
+                                                text: '평균점수'
+                                            }
+                                        },
+                                        legend: {
+                                            reversed: true,
+                                            enabled:false
+                                        },
+                                        plotOptions: {
+                                            series: {
+                                                stacking: 'normal'
+                                            }
+                                        },
+                                        exporting:{
+                                            enabled:false
+                                        },
+                                        credits : {
+                                            enabled: false
+                                        },
+                                        navigation : {
+                                            buttonOptions:false
+                                        },
+                                        series: [{
+                                            name: '평균 점수',
+                                            data: [
+                                                /*[# th:each="averagePoint: ${poll.statistics.averagePoints}"]*/
+                                                /*[[${averagePoint}]]*/,
+                                                /*[/]*/
+                                            ]
+                                        }]
+                                    });
+                                });
+                            </script>
+                        </div>
+                        <div class="row" sec:authorize="!isAuthenticated()">
+                            <div class="col-md-12 text-right">
+                                <button type="button" data-toggle="modal" data-target="#login-modal" class="btn btn-default btn-sm">로그인 후 설문제출</button>
+                            </div>
+                        </div>
+                    </div>
+                </th:block>
+                <div sec:authorize="isAuthenticated()">
+                    <th:block th:if="${!poll.polled}">
+                        <h4>
+                            <i class="fa fa-bar-chart"></i>
+                            <span th:text="${poll.pollName}">name</span>
+                        </h4>
+                        <form action="/poll/poll" method="post">
+                            <input type="hidden" name="bbsTypeId" th:value="${poll.bbsTypeId}" />
+                            <input type="hidden" name="bbsId" th:value="${bbs.id}" />
+                            <input type="hidden" name="pollId" th:value="${poll.id}" />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table class="table table-bordered table-striped">
+                                        <tr>
+                                            <th>순번</th>
+                                            <th>항목</th>
+                                            <th>점수</th>
+                                        </tr>
+
+                                        <th:block th:each="pollItem, status : ${poll.pollitems}" >
+                                            <input type="hidden" th:name="|pollItemId[${status.index}]|" th:value="${pollItem.id}" />
+                                            <tr>
+                                                <td th:text="${pollItem.id}">1</td>
+                                                <td th:text="${pollItem.name}">aa</td>
+                                                <td>
+                                                    &nbsp;&nbsp;<input type="radio" th:name="|point[${status.index}]|" value="1" /> 아주불만
+                                                    &nbsp;&nbsp;<input type="radio" th:name="|point[${status.index}]|" value="2" /> 불만
+                                                    &nbsp;&nbsp;<input type="radio" th:name="|point[${status.index}]|" value="3" checked="checked" /> 보통(모르겠다)
+                                                    &nbsp;&nbsp;<input type="radio" th:name="|point[${status.index}]|" value="4" /> 만족
+                                                    &nbsp;&nbsp;<input type="radio" th:name="|point[${status.index}]|" value="5" /> 아주만족
+                                                </td>
+                                            </tr>
+                                        </th:block>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 text-right">
+                                    <button type="submit" id="poll-button-${poll.id}" class="btn btn-default btn-sm">설문제출</button>
+                                </div>
+                            </div>
+                        </form>
+                    </th:block>
+                </div>
+            </div>
+            <!-- POLL END -->
+
+            <br />
+        </div>
+        <th:block th:if="${hasPoll}">
+            <div class="hidden-xs hidden-sm hidden-md hidden-lg" >
+            <th:block th:each="poll, status : ${polls}">
+                <h4 class=""><i class="fa fa-bar-chart-o"></i> <span th:text="${poll.pollName}">poll name</span> <small th:text="|(총 ${poll.statistics.pollCount}명 설문작성)|"></small></h4>
+
+                <div class="panel panel-default">
+                <!-- div class="panel-heading"><i class="fa fa-bar-chart-o"></i> ${poll.pollName}</div -->
+                <div class="panel-body">
+
+                    <div id="highchart-small-container-${poll.id}" ></div>
+                    <script type="text/javascript" th:inline="javascript">
+                        $(function () {
+                            $('#highchart-small-container-${poll.id}').highcharts({
+                                chart: {
+                                    type: 'column',
+                                    height: 300,
+                                    style: {
+                                        fontFamily: 'Malgun Gothic'
+                                    }
+                                },
+                                title: {
+                                    text: '${poll.pollName}'
+                                },
+                                xAxis: {
+                                    categories: [
+                                        /*[# th:each="pollItem: ${poll.pollitems}"]*/
+                                        '[[${pollItem.name}]]',
+                                        /*[/]*/
+                                    ]
+                                },
+                                yAxis: {
+                                    min: 0,
+                                    title: {
+                                        text: '평균점수'
+                                    }
+                                },
+                                legend: {
+                                    reversed: true,
+                                    enabled:false
+                                },
+                                plotOptions: {
+                                    series: {
+                                        stacking: 'normal'
+                                    }
+                                },
+                                credits : {
+                                    enabled: false
+                                },
+                                navigation : {
+                                    buttonOptions:false
+                                },
+                                exporting : {
+                                    enabled:false
+                                },
+                                series: [{
+                                    name: '평균 점수',
+                                    data: [
+                                        /*[# th:each="averagePoint: ${poll.statistics.averagePoints}"]*/
+                                        /*[[${averagePoint}]]*/,
+                                        /*[/]*/
+                                    ]
+                                }]
+                            });
+                        });
+                    </script>
+                </div>
+            </div>
+            </th:block>
+        </div>
+        </th:block>
+    </div>
+
+    <hr />
+
+    <div class="row">
+        <div class="col-md-6"></div>
+        <div class="col-md-6 text-right">
+            <button type="button" id="modify-button" class="btn btn-default" style="display:none;">수정</button>
+            <button type="button" id="delete-button" class="btn btn-default" style="display:none;">삭제</button>
+            <button type="button" id="publish-button" class="btn btn-default btn-primary" style="display:none;">공개</button>
+            <button type="button" id="unpublish-button" class="btn btn-default btn-primary" style="display:none;">비공개</button>
+            <button type="button" id="move-button" class="btn btn-default btn-primary" style="display:none;" data-toggle="modal" data-target="#move-modal">이동(관리자 권한)</button>
+            <button type="button" id="list-button" class="btn btn-default">목록</button>
+        </div>
+    </div>
+
+    <br />
+
+    <!-- table -->
+    <div id="comment-div">
+        <table class="table table-hover" summary="목록보기">
+            <tbody id="tbody-list" >
+                <tr th:id="${comment.id.id}" th:attr="author=${comment.regUsername}" th:each="comment : ${comments}">
+                    <td class="hidden-sm hidden-xs">
+                        <span th:text="${comment.displayUsername}"></span>
+                        <br />[<span th:text="${#calendars.format(comment.regDate,'yyyy/MM/dd HH:mm')}">2020-01-01</span>]
+                    </td>
+                    <td>
+                        <p class="comment" th:text="${#strings.replace(comment.comment, '\n', '&lt;br /&gt;')}">
+                        </p>
+                        <small class="hidden-lg hidden-md">
+                            <span th:text="${comment.displayUsername}"></span>
+                            <br />
+                            [<span th:text="${#calendars.format(comment.regDate,'yyyy/MM/dd HH:mm')}">2020-01-01</span>]
+                        </small>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <form role="form" id="comment-form" th:object="${bbsComment}" th:action="@{/comment/{typeName}(typeName=${bbsType.typeName})}" method="post">
+        <input type="hidden" name="bbsId" th:value="${bbs.id}" />
+        <div class="form-group">
+            <div sec:authorize="!isAuthenticated()">
+                <textarea class="form-control" rows="3" name="comment" placeholder="댓글을 등록하려면 로그인 하세요." onclick="javascript:$('#login-modal').modal('show');"></textarea>
+            </div>
+            <div sec:authorize="isAuthenticated()">
+                <textarea class="form-control" rows="3" name="comment"></textarea>
+            </div>
+        </div>
+        <div sec:authorize="isAuthenticated()">
+            <button type="submit" id="comment-register-button" class="btn btn-sm btn-default  pull-right">댓글 등록</button>
+        </div>
+    </form>
+    <!-- //table -->
+
+    <!-- Modal -->
+
+    <!-- Comment Modal -->
+    <script type="text/javascript" th:inline="javascript">
+        $(document).ready(function(){
+            const commentPopupForm = $('#comment-popup-form')
+            const commentSaveButton = $('#comment-save-button')
+            const commentDeleteButton = $('#comment-delete-button')
+
+            commentSaveButton.on('click', function(){
+                commentPopupForm.attr('action', '/comment/'+bbsTypeName)
+                commentPopupForm.submit()
+            })
+
+            commentDeleteButton.on('click', function(){
+                if(!confirm("정말 삭제하시겠습니까?")) {
+                    return
+                }
+                commentPopupForm.attr('action', '/comment/delete/'+bbsTypeName)
+                commentPopupForm.submit()
+            })
+        })
+    </script>
+    <div class="modal fade" id="comment-modal" tabindex="-1" role="dialog" aria-labelledby="commentLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form role="form" th:action="|/comment/${bbsType.typeName}|" id="comment-popup-form" method="post" autocomplete="off">
+                    <input type="hidden" id="bbs-type-id-hidden" name="bbsTypeId" th:value="${bbs.bbsId}"/>
+                    <input type="hidden" id="bbs-id-hidden" name="bbsId" th:value="${bbs.id}" />
+                    <input type="hidden" id="id-hidden" name="id" />
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title" id="myModalLabel">댓글수정</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="comment-textarea"></label>
+                            <textarea class="form-control" name="comment" id="comment-textarea" rows="10"> </textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="comment-save-button">수정</button>
+                        <button type="button" class="btn btn-danger" id="comment-delete-button">삭제</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">취소</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <br /><br />
+    <h4> <i class="fa fa-youtube"></i> 관련 동영상</h4>
+    <script type="text/javascript" th:inline="javascript">
+        const bbsTitle = /*[[${bbs.title}]]*/ title
+        $(function(){
+            $.get('/bbs/youtube/search?query='+encodeURIComponent(bbsTitle),
+                function(data) {
+                    if (data.length !== 0) {
+                        renderYoutube('youtube-search-0', data[0].videoId)
+                    }
+                    if (data.length > 1) {
+                        renderYoutube('youtube-search-1', data[1].videoId)
+                    }
+                    if (data.length > 2) {
+                        renderYoutube('youtube-search-2', data[2].videoId)
+                    }
+                })
+        })
+
+        function renderYoutube(wrapperId, youtubeId) {
+            const el = document.querySelector('#' + wrapperId)
+            el.innerHTML = '<iframe width="300" height="200" style="display:block;margin: 0 auto;" src="https://www.youtube.com/embed/' + youtubeId + '" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
+        }
+    </script>
+    <div class="row">
+        <div class="col-md-4">
+            <span id="youtube-search-0"></span>
+        </div>
+        <div class="col-md-4">
+            <span id="youtube-search-1"></span>
+        </div>
+        <div class="col-md-4">
+            <span id="youtube-search-2"></span>
+        </div>
+    </div>
+
+    <!-- BBS MOVE Modal -->
+    <script type="text/javascript">
+        function selectTargetBbsType(targetBbsTypeId, targetBbsTypeName){
+            $('#destination-bbs-id-hidden').val(targetBbsTypeId);
+            $('#selected-target-bbs-span').text(targetBbsTypeName);
+        }
+        $(document).ready(function(){
+        });
+    </script>
+    <div class="modal fade" id="move-modal" tabindex="-1" role="dialog" aria-labelledby="commentLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form role="form" action="/admin/v2/bbs/move/${bbsType.typeName}/${bbs.id}" method="post" autocomplete="off">
+                    <input type="hidden" id="destination-bbs-id-hidden" name="destinationBbsTypeName" />
+                    <input type="hidden"
+                           name="${_csrf.parameterName}"
+                           value="${_csrf.token}"/>
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title" id="moveModalLabel" >게시글 이동</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="comment-textarea"></label>
+                            <div class="dropdown">
+                                <button class="btn btn-default" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+                                    이동할 게시판 선택
+                                    <span class="caret"></span>
+                                </button>
+                                <span id="selected-target-bbs-span"></span>
+                                <ul class="dropdown-menu col-md-10 col-lg-10" role="menu" aria-labelledby="dropdownMenu1">
+                                    <th:block th:each="bbsTypeVO : ${bbsTypes}" >
+                                        <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:selectTargetBbsType('${bbsTypeVO.typeName}','${bbsTypeVO.title}')" th:text="|${bbsTypeVO.title} - ${bbsTypeVO.desc}|"></a></li>
+                                    </th:block>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">취소</button>
+                        <button type="submit" class="btn btn-primary">이동</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

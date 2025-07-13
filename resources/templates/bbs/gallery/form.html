@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="~{decorators/manty/list}">
+<head>
+    <title>스쿠버 다이빙 클럽 - MANTY SCUBA</title>
+
+    <script th:src="@{/bootstrap-datepicker/js/bootstrap-datepicker.js}"></script>
+    <script th:src="@{/bootstrap-datepicker/js/locales/bootstrap-datepicker.kr.js}"></script>
+
+    <script th:src="@{/bower_components/tui-code-snippet/dist/tui-code-snippet.min.js}"></script>
+    <script th:src="@{/bower_components/markdown-it/dist/markdown-it.js}"></script>
+    <script th:src="@{/bower_components/to-mark/dist/to-mark.js}"></script>
+    <script th:src="@{/bower_components/codemirror/lib/codemirror.js}"></script>
+    <script th:src="@{/bower_components/highlightjs/highlight.pack.js}"></script>
+    <script th:src="@{/bower_components/squire-rte/build/squire-raw.js}"></script>
+    <script th:src="@{/bower_components/tui-editor/dist/tui-editor-Editor.min.js}"></script>
+    <link rel="stylesheet" th:href="@{/bower_components/codemirror/lib/codemirror.css}">
+    <link rel="stylesheet" th:href="@{/bower_components/highlightjs/styles/github.css}">
+    <link rel="stylesheet" th:href="@{/bower_components/tui-editor/dist/tui-editor.css}">
+    <link rel="stylesheet" th:href="@{/css/tui-editor-contents-custom.css}">
+
+    <!-- Include the plugin's CSS and JS: -->
+    <script type="text/javascript" th:src="@{/bootstrap-multiselect-0.9.15/dist/js/bootstrap-multiselect.js}"></script>
+    <link rel="stylesheet" th:href="@{/bootstrap-multiselect-0.9.15/dist/css/bootstrap-multiselect.css}" type="text/css"/>
+
+    <script type="text/javascript">
+        const bbsTypeName = /*[[${bbsType.typeName}]]*/ 'gear'
+        const bbsId = /*[[${bbs.id}]]*/ 1
+        const pageIndex = /*[[${searchVO.pageIndex}]]*/ 1
+        let isChanged = false;
+
+        $(document).ready(function(){
+            $('#bbs-form').bootstrapValidator({
+                trigger: 'blur submit',
+                message: 'This value is not valid',
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh'
+                },
+                fields: {
+                    /*[# th:if="${bbsType.fieldFromDate}"]*/
+                    fromDate : {
+                        message: '시작 일자를 입력하세요. ',
+                        validators: {
+                            notEmpty: {
+                                message: '시작 일자를 입력하세요.'
+                            },
+                            date: {
+                                format : 'YYYY-MM-DD',
+                                message : '날짜 포멧을 확인하세요.(YYYY-MM-DD)'
+                            }
+                        }
+                    },
+                    /*[/]*/
+                    /*[# th:if="${bbsType.fieldToDate}"]*/
+                    toDate : {
+                        message: '종료 일자를 입력하세요. ',
+                        validators: {
+                            notEmpty: {
+                                message: '종료 일자를 입력하세요.'
+                            },
+                            date: {
+                                format : 'YYYY-MM-DD',
+                                message : '날짜 포멧을 확인하세요.(YYYY-MM-DD)'
+                            }
+                        }
+                    },
+                    /*[/]*/
+                    /*[# sec:authorize="!isAuthenticated()"]*/
+                    regUsernameText: {
+                        message: '작성자 항목을 확인해 주세요.',
+                        validators: {
+                            notEmpty: {
+                                message: '작성자 항목을 확인해 주세요.'
+                            }
+                        }
+                    },
+                    /*[/]*/
+                    title:{
+                        message: '제목을 입력해 주세요.',
+                        validators:{
+                            notEmpty : {
+                                message: '제목을 입력해 주세요.'
+                            }
+                        }
+                    },
+                    password:{
+                        message: '비밀번호를 입력해 주세요.',
+                        validators:{
+                            notEmpty : {
+                                message: '비밀번호를 입력해 주세요.'
+                            }
+                        }
+                    }
+                }
+            }).on('success.form.bv', function() {
+                var sHTML = $('#editSection').tuiEditor('getValue');
+                if ( sHTML === "" || sHTML == null ){
+                    alert( "내용을 입력해 주세요.");
+                    return false;
+                }
+                $("#contents-hidden").val(sHTML);
+            });
+
+            if ( bbsId != 0 && bbsId != null ) {
+                $.getJSON('/bbs/api/detail/'+bbsTypeName+'/' + bbsId +'?readCount=false&newLineReplace=false&raw=true', function (data) {
+                    $('#editSection').tuiEditor('setValue', data.contents);
+                })
+            }
+
+            $("#cancel-button").on('click', function(){
+                location.href = '/bbs/list/'+bbsTypeName+'?pageIndex='+pageIndex
+            })
+
+            $("#temp-regist-button").on('click', function(){
+                const sHTML = $("#editSection").tuiEditor('getValue');
+                if ( sHTML === "" || sHTML == null ){
+                    alert( "내용을 입력해 주세요.");
+                    return false;
+                }
+                $("#contents-hidden").val(sHTML);
+
+                $.post("/bbs/"+bbsTypeName,
+                    $("#bbs-form").serialize(),
+                    function( data ) {
+                        if ( !data.result ) {
+                            alert(data.errorDetail);
+                        }else{
+                            const idParam = $("#id-id");
+                            if (idParam.val() == null ||idParam.val() === 0 ) {
+                                idParam.val(data.data);
+                            }
+                        }
+                    },
+                    "json"
+                );
+                return false;
+            })
+
+            $('.date').datepicker({
+                format:'yyyy-mm-dd',
+                language: 'kr',
+                todayHighlight: false,
+                autoclose : false,
+                startDate : "d"
+            });
+
+            $(window).bind('beforeunload', function() {
+                if(isChanged) {
+                    return '변경된 사항이 있습니다. 페이지에서 나가시겠습니까?';
+                }
+            });
+
+            $("form").bind("submit",function(){
+                $(window).unbind('beforeunload');
+            });
+
+            $('#tags-select').multiselect();
+
+        });
+
+    </script>
+</head>
+
+<body>
+<th:block layout:fragment="content">
+    <form th:object="${bbs}" name="bbs" id="bbs-form"
+          th:action="@{/bbs/{typeName}(typeName=${bbsType.typeName})}" method="post" class="form-horizontal" role="form" autocomplete="false">
+        <!-- hack for chrome autocomplete start -->
+        <input style="display:none" />
+        <input type="password" style="display:none" />
+        <!-- hack for chrome autocomplete end -->
+
+        <input type="hidden" name="id" id="id-id" th:value="${bbs.id}" />
+        <input type="hidden" name="pageIndex" id="pageIndex" th:value="${searchVO.pageIndex}" />
+        <input type="hidden" name="editorType" id="editorType" value="TUI_EDITOR_MK" />
+        <input type="hidden" name="contents" id="contents-hidden" value="" />
+
+        <th:block sec:authorize="!isAuthenticated()">
+        <div class="form-group">
+            <div class="col-sm-5">
+                <input type="text" th:field="*{regUsernameText}" class="form-control" id="reg-username-text-text" placeholder="작성자 이름 또는 별명을 입력하세요." autocomplete="false"/>
+            </div>
+            <div class="col-sm-5">
+                <input type="password" th:field="*{password}" class="form-control" id="password-text" placeholder="패스워드를 입력하세요. 수정/삭제시 필요합니다."  autocomplete="false" />
+            </div>
+        </div>
+        </th:block>
+        <th:block th:if="${bbsType.fieldFromDate}" >
+            <div class="form-group">
+                <div class="col-sm-10 col-md-5">
+                    <div class="input-group date">
+                        <span class="input-group-addon"><em class="glyphicon glyphicon-th"></em></span>
+                        <input type="text" th:field="*{fromDate}" class="form-control" id="from-date-input" placeholder="시작일" />
+                    </div>
+                </div>
+                <th:block th:if="${bbsType.fieldToDate}" >
+                    <div class="col-sm-10 col-md-5">
+                        <div class="input-group date">
+                            <span class="input-group-addon"><em class="glyphicon glyphicon-th"></em></span>
+                            <input type="text" th:field="*{toDate}" class="form-control" id="to-date-input" placeholder="종료일" />
+                        </div>
+                    </div>
+                </th:block>
+            </div>
+        </th:block>
+        <div class="form-group">
+            <div class="col-lg-12">
+                <div class="input-group">
+                    <div class="input-group-btn">
+                        <select th:field="*{bbsTagValues}" id="tags-select"
+                                class="form-control"
+                                multiple="multiple"
+                                placeholder="tag를 선택해 주세요.">
+                            <option th:each="tag : ${tags}" th:value="${tag.id}" th:text="${tag.name}"
+                                    th:selected="${tag.id==0}"></option>
+                        </select>
+                    </div>
+                    <input type="text" th:field="*{title}" class="form-control" id="title-input" placeholder="제목을 입력해 주세요." />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-12">
+                <div id="editSection"></div>
+            </div>
+        </div>
+        <script th:src="@{/js/tui-editor-ext/tui-editor-youtube.js}"></script>
+        <script th:src="@{/bower_components/tui-editor/dist/tui-editor-extScrollSync.js}"></script>
+        <script>
+            $('#editSection').tuiEditor({
+                initialEditType: 'wysiwyg',
+                previewStyle: 'vertical',
+                height: 500,
+                exts: ['youtube', 'scrollSync'],
+                hooks : {
+                    'addImageBlobHook': function (blob, callback) {
+                        // var token = $("meta[name='_csrf']").attr("content");
+                        // var header = $("meta[name='_csrf_header']").attr("content");
+
+                        var data = new FormData();
+                        data.append("file", blob);
+
+                        $.ajax({
+                            data: data,
+                            type: "POST",
+                            url: "/bbs/saveimage",
+                            enctype:'multipart/form-data',
+                            cache: false,
+                            contentType: false,
+                            processData: false,
+                            timeout: 100000,
+                            // beforeSend:function(xhr){
+                            //     xhr.setRequestHeader(header, token);
+                            // },
+                            success: function(url) {
+                                callback(url)
+                            }
+                        });
+                    }
+                }
+            });
+
+        </script>
+
+        <div class="checkbox">
+            <label class="col-sm-2 control-label"></label>
+            <checkbox th:field="*{noticeYn}" value="true" label="공지글" title="공지글" ></checkbox>
+
+            <th:block th:if="${bbsType.securityType==4}" >
+                <div class="col-sm-2">
+                    <label>
+                        <checkbox th:field="*{secretYn}" id="secret-yn-checkbox" value="false" label="비밀글" title="비밀글" ></checkbox>
+                    </label>
+                </div>
+            </th:block>
+        </div>
+
+        <div class="pull-right">
+            <button type="submit" id="regist-button" class="btn btn-primary">등록</button>
+            <button type="button" id="temp-regist-button" class="btn btn-success">저장</button>
+            <button type="button" id="cancel-button" class="btn btn-default">취소</button>
+        </div>
+    </form>
+</th:block>
+</body>
+</html>

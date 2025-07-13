@@ -1,0 +1,34 @@
+package main
+
+import (
+	"log"
+	"manty-go/handler"
+	"manty-go/resources"
+	"manty-go/service"
+	"manty-go/utils"
+	"net/http"
+
+	"github.com/zbum/mantyboot/http/mux"
+	"github.com/zbum/mantyboot/http/mux/middleware"
+)
+
+func main() {
+
+	mux := mux.NewMantyMux()
+
+	logger := log.Default()
+	mux.AddMiddleware(middleware.AccessLogger(logger))
+	mux.AddMiddleware(utils.CorsAllowAll())
+
+	mux.Handle("GET /", http.FileServerFS(resources.GetStaticFs()))
+
+	indexHandler := handler.NewIndexHandler()
+	mux.HandleFunc("GET /index", indexHandler.Index)
+
+	postService := service.NewDumyPostService()
+	postHandler := handler.NewPostHandler(logger, nil, postService)
+	mux.HandleFunc("GET /posts", postHandler.GetPosts)
+
+	log.Panic(http.ListenAndServe(":8080", mux))
+
+}

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body th:fragment="right">
+    <div th:insert="~{decorators/manty/common/edulist :: edulist}" ></div>
+    <div th:insert="~{decorators/manty/common/adfit :: adfit}" ></div>
+    <div class="panel panel-success ">
+        <div class="panel-heading"><i class="fa fa-send"></i> 교육 및 투어 문의 </div>
+        <div class="panel-body">
+            <span style="display:inline-block; width:100%;white-space: nowrap;overflow:hidden !important;text-overflow: ellipsis;" >
+
+                <div class="row">
+                    <div class="col-md-1">
+                        <p class="text-success"><img class="" src="/images/ext/kakaolink_btn_medium.png" style="height:14px;" />  </p>
+                    </div>
+                    <div class="col-md-10">
+                            <p class="text-success">카카오톡 ID : <strong>mantyscuba</strong></p>
+                    </div>
+                </div>
+
+                 <div class="row">
+                     <div class="col-md-1">
+                         <p class="text-success"><i class="fa fa-at"></i>   </p>
+                     </div>
+                     <div class="col-md-10">
+                         <p class="text-success">
+                             email : <strong>jibum.jung@gmail.com</strong>
+                         </p>
+                     </div>
+                 </div>
+            </span>
+        </div>
+    </div>
+</body>
+</html>
+

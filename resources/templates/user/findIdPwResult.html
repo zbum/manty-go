@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="decorators/manty/list">
+<head>
+    <link th:href="@{//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css}" rel="stylesheet">
+    <link th:href="@{/summernote/summernote.css}" rel="stylesheet">
+    <script th:src="@{/summernote/summernote.min.js}"></script>
+
+    <script type="text/javascript">
+	    $(document).ready(function(){
+	    });
+	</script>
+</head>
+
+<body>
+<th:block layout:fragment="content">
+    <h3>
+        <i class="fa fa-user"></i>
+        패스워드 초기화 확인 | <small> 패스워드 초기화 확인.</small>
+    </h3>
+
+    <hr />
+    <th:block th:if="${validUsername}" >
+    <h4>새로운 패스워드를 발송하였습니다. 이메일을 확인해 주세요.</h4>
+    </th:block>
+
+    <th:block th:if="${!validUsername}" >
+        <h4>이메일 아이디가 존재하지 않습니다. 가입해 주세요.</h4>
+        <div class="row">
+            <div class="col-md-12 ">
+                <button type="button" class="btn btn-primary" onclick="javascript:location.href='/user/findidpw';"><i class="fa fa-email"></i> 비밀번호 찾기 다시시도 </button>
+            </div>
+        </div>
+    </th:block>
+    <br />
+</th:block>
+</body>
+</html>

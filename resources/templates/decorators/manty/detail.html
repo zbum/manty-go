@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="kr" xml:lang="kr"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <meta name="description" content="manty scuba" >
+    <meta name="keywords" content="scuba,manty,mantyscuba,만티,스쿠바,스쿠버"/>
+    <meta name="author" content="zbum">
+    <th:block th:insert="~{decorators/manty/common/favicon :: favicon}" ></th:block>
+
+    <title layout:title-pattern="$CONTENT_TITLE">스쿠버 다이빙 클럽 - MANTY SCUBA</title>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Custom styles for this template -->
+    <link href="/css/carousel.css" rel="stylesheet">
+
+    <link href="/bootstrap-datepicker/css/datepicker.css" rel="stylesheet">
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="/bootstrap/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="/bootstrapvalidator-dist/dist/css/bootstrapValidator.min.css"/>
+    <script type="text/javascript" src="/bootstrapvalidator-dist/dist/js/bootstrapValidator.min.js"></script>
+
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="/css/apollo.css" rel="stylesheet" >
+    <link href="/css/social.css" rel="stylesheet" >
+
+    <link href="/css/manty.css?v=3" rel="stylesheet">
+    <link href="/css/callout.css" rel="stylesheet">
+    <link href="/css/wow/animate.css" rel="stylesheet">
+    <link href="/css/blurred.css" rel="stylesheet">
+
+    <style type="text/css">
+
+        .carousel-caption {
+            left: 20%;
+            right: 20%;
+            padding-bottom: 0px;
+        }
+
+        .carousel-image {
+            max-width: 100%;
+            min-width: 1300px;
+            overflow: hidden;
+            padding : 0px;
+        }
+
+    </style>
+
+    <th:block th:insert="~{decorators/manty/common/adsense_auto :: adsense_auto}" ></th:block>
+    <th:block th:insert="~{decorators/manty/common/analytics :: analytics}" ></th:block>
+</head>
+<body>
+<th:block th:insert="~{decorators/manty/common/facebook :: facebook}" ></th:block>
+<th:block th:insert="~{decorators/manty/common/naver :: naver}" ></th:block>
+<th:block th:insert="~{decorators/manty/common/menu :: menu}" ></th:block>
+
+
+<!-- Carousel
+================================================== -->
+<div id="myCarousel" class="carousel-detail slide" data-ride="carousel">
+    <div class="carousel-inner">
+        <div class="item active">
+            <div  class="carousel-image">
+                <img src="/images/ext/carousel_title_thin_2.jpg"  style="background-repeat: repeat-x; background-size: cover;" alt="" class="carousel-image title-inverse" id="carousel-image-0">
+            </div>
+            <div class="container">
+                <div class="carousel-caption">
+                    <div class="row">
+                        <div class="col-md-9 text-left">
+                            <h2 style="font-weight:800;">MANTY SCUBA</h2>
+                        </div>
+                        <div class="col-md-3">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div><!-- /.carousel -->
+
+
+
+<!-- Marketing messaging and featurettes
+================================================== -->
+<!-- Wrap the rest of the page in another container to center all the content. -->
+
+<div class="container marketing" style="min-height: 40em">
+    <!-- content -->
+    <div class="row">
+        <div class="col-md-9">
+            <th:block layout:fragment="content"></th:block>
+        </div>
+        <div class="col-md-3 hidden-xs hidden-sm" >
+            <div>
+                <div th:insert="~{decorators/manty/common/right :: right}" ></div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /.container -->
+
+<!-- FOOTER -->
+<div th:insert="~{decorators/manty/common/footer :: footer}" ></div>
+
+<!-- POPUP -->
+<div th:insert="~{decorators/manty/common/login :: login}" ></div>
+<div th:insert="~{decorators/manty/common/password :: password}" ></div>
+
+</body>
+</html>

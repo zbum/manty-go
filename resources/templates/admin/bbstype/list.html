@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="~{decorators/manty/admin/basic}">
+<head>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $("#admin-menu-board").siblings("li").removeClass("active");
+            $("#admin-menu-board").addClass("active");
+
+            $("#search-button").click(function(){
+                search();
+            });
+
+            $("#write-button").button({
+                icons: {
+                    secondary: "ui-icon-circle-triangle-e"
+                }
+            }).click(function(){
+                location.href = "/admin/v2/bbstype/bbs.do";
+                return false;
+            });
+
+            $("#tbody-list>tr").click(function(){
+                location.href="/admin/v2/bbstypes/"+$(this).attr("id");
+            });
+
+            $("#tbody-list>tr>td>button").button({
+                icons: {
+                    secondary: "ui-icon-circle-triangle-e"
+                }
+            }).click(function (event) {
+                event.stopPropagation();
+                location.href = "/bbs/list/"+$(this).attr("bbstype-type-name");
+                return false;
+            });
+        });
+        function moveToPage(pageIndex){
+            $("#pageIndex").val(pageIndex-1);
+            document.frm.action = "/admin/v2/bbstypes";
+            document.frm.submit();
+        }
+
+        function search(){
+            $("#pageIndex").val(1);
+            document.frm.submit();
+        }
+    </script>
+    <style>
+        #tbody-list tr:hover { background-color: #f2f2f2; cursor:pointer;}
+    </style>
+</head>
+
+<body>
+<th:block layout:fragment="content">
+<!-- Page Heading -->
+<div class="row">
+    <div class="col-lg-12">
+        <h1 class="page-header">
+            만티보드관리 <small>만티보드관리</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li class="active">
+                <i class="fa fa-dashboard"></i> 보드 목록
+            </li>
+        </ol>
+    </div>
+</div>
+<!-- /.row -->
+    <form th:object="${frm}" name="frm" method="get" >
+        <input name="pageIndex" id="pageIndex" type="hidden" value="<c:out value='${searchVO.pageIndex}'/>"/>
+        <input name="sort" id="sort" type="hidden" value="bbsTypeId"/>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-striped">
+                        <thead>
+                        <tr>
+                            <th>순번</th>
+                            <th>게시판명</th>
+                            <th>게시판설명</th>
+                            <th>Type</th>
+                            <th>등록일</th>
+                            <th>게시판이동</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody-list">
+                            <tr th:id="${bbstype.bbsTypeId}" th:each="bbstype : ${list}">
+                                <td th:text="${bbstype.bbsTypeId}"></td>
+                                <td th:text="${bbstype.title}"></td>
+                                <td class="tl" th:text="${bbstype.desc}"></td>
+                                <td th:text="|${bbstype.type} 형|">1 형</td>
+                                <td th:text="${#calendars.format(bbstype.regDate, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                                <td><button th:attr='bbstype-id=${bbstype.bbsTypeId},bbstype-type-name=${bbstype.typeName}' >이동</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- //table -->
+            <!-- 페이지번호 -->
+            <div class="row">
+                <div class="col-md-4 col-sm-4 col-xs-3 " ></div>
+                <div class="col-md-4 col-sm-4 col-xs-6 " >
+                    <ul class="pagination">
+                        <div th:insert="~{decorators/manty/common/pagination :: pagination}" ></div>
+                    </ul>
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-3 " ></div>
+            </div>
+
+            <div sec:authorize="hasAnyRole('ROLE_ADMIN')">
+                <div class="row">
+                    <div class="col-md-9"></div>
+                    <div class="col-md-3 text-right">
+                        <button type="button" id="write-button" class="btn btn-primary">게시판 생성</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      layout:decorate="~{decorators/manty/list}">
+<head>
+    <script type="text/javascript" th:inline="javascript">
+        const bbsTypeId = /*[[${bbsType.bbsTypeId}]]*/ '1'
+        const securityType = /*[[${bbsType.securityType}]]*/ 2
+        const writeSecurityType = /*[[${bbsType.writeSecurityType.name()}]]*/ 'AUTHENTICATED_ONLY'
+        /*[# sec:authorize="isAuthenticated()"]*/
+        const loginUserName = /*[[${#authentication.principal.username}]]*/ 'admin'
+        /*[/]*/
+        const bbsTypeName = /*[[${bbsType.typeName}]]*/ 'gear'
+
+        $(document).ready(function(){
+            if ( bbsTypeId === "0" || bbsTypeId === "" ) {
+                alert( "정의되지 않은 게시판입니다." );
+            }
+            $("#search-button").click(function(){
+                search();
+            });
+
+            $("#write-button").click(function() {
+                if (writeSecurityType === 'AUTHENTICATED_ONLY') {
+                    /*[# sec:authorize="!isAuthenticated()"]*/
+                        alert("로그인한 회원만 글쓰기가 가능합니다.");
+                        return;
+                    /*[/]*/
+                }
+                location.href = "/bbs/"+bbsTypeName+"/form";
+                return false;
+            });
+
+            $("#tbody-list>tr").click(function(){
+                if ( securityType === 2) {
+                    /*[# sec:authorize="!isAuthenticated()"]*/
+                        alert("로그인한 회원만 조회 가능합니다.");
+                        return;
+                    /*[/]*/
+                }
+
+                if ( securityType === 3) {
+                    /*[# sec:authorize="!hasRole('ROLE_ADMIN')"]*/
+                        /*[# sec:authorize="!isAuthenticated()"]*/
+                            alert("본인글만 조회 가능합니다.");
+                            return;
+                        /*[/]*/
+                        /*[# sec:authorize="isAuthenticated()"]*/
+                            if (loginUserName != $(this).attr("author")) {
+                                alert("본인글만 조회 가능합니다.");
+                                return;
+                            }
+                        /*[/]*/
+                    /*[/]*/
+                }
+
+                location.href="/bbs/detail/"+bbsTypeName+"?id="+$(this).attr("id") + "&pageIndex=" +$("#pageIndex").val();
+            });
+        });
+
+        function moveToPage(pageIndex){
+            $("#pageIndex").val(pageIndex);
+            $("#search-form").attr("action","/bbs/list/" + bbsTypeName);
+            $("#search-form").submit();
+        }
+
+        function search(){
+            $("#pageIndex").val(1);
+            $("#search-form").submit();
+        }
+    </script>
+</head>
+
+<body>
+<th:block layout:fragment="content">
+    <th:block th:if="${not #strings.isEmpty(bbsType.notice)}" >
+        <div class="alert alert-success alert-dismissible animated fadeInDown" role="alert">
+            <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <strong>Notice!</strong> <span th:text="${bbsType.notice}">notice</span>
+        </div>
+    </th:block>
+    <div class="well well-sm">
+        <form class="form-inline" method="get" id="search-form">
+            <input type="hidden" name="bbsId" id="bbs-id" th:value="${bbsType.bbsTypeId}"/>
+            <input type="hidden" name="pageIndex" id="pageIndex" th:value="${searchVO.pageIndex}"/>
+
+            <div class="form-group">
+                <select name="searchCondition" class="form-control">
+                    <option value="1">제목</option>
+                    <option value="2">내용</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="sr-only" for="search-keyword">검색어</label>
+                <input type="text" class="form-control" id="search-keyword" name="searchKeyword" th:value="${searchVO.searchKeyword}"  maxlength="35" />
+            </div>
+            <button type="submit" id="search-button" class="btn btn-default btn-primary"> 검색 </button>
+        </form>
+    </div>
+    <!-- // search_box -->
+
+    <!-- table -->
+    <div>
+        <table class="table table-hover" summary="목록보기">
+            <thead>
+            <tr class="active">
+                <th class="hidden-sm hidden-xs">순번</th>
+                <th>제목</th>
+                <th class="hidden-sm hidden-xs">조회수</th>
+                <th class="hidden-sm hidden-xs">등록자</th>
+                <th class="hidden-sm hidden-xs">등록일</th>
+            </tr>
+            </thead>
+            <tbody id="tbody-list">
+                <tr th:id="${bbs.id}" th:attr="author=${bbs.regUsername}" class="text-muted" style="cursor: pointer;" th:each="bbs :${list}">
+                    <td class="hidden-sm hidden-xs col-md-1 center" th:text="${bbs.id}">1</td>
+                    <td class="">
+                        <p>
+                            <th:block th:if="${bbs.fromDate != null}" >
+                                [<span th:text="${#calendars.format(bbs.fromDate,'yyyy-MM-dd')}">2020-01-01</span>~<span th:text="${#calendars.format(bbs.toDate,'yyyy-MM-dd')}">2020-01-01</span>]
+                            </th:block>
+                            <span th:text="${bbs.title}">title</span>
+                            <th:block th:if="${bbs.commentCount != 0}" >
+                                [<span th:text="${bbs.commentCount}"></span>]
+                            </th:block>
+                            &nbsp;
+                            <th:block th:each="tag :${bbs.bbsTags}">
+                                <span class="label label-success" th:text="${tag.name}">big things</span>
+                            </th:block>
+                        </p>
+                        <small class="hidden-lg hidden-md">
+                            <span th:text="${bbs.displayUsername}"></span> |
+                            <span th:text="${bbs.regDate}"></span> |
+                            조회:<span th:text="${bbs.readCount}"></span>
+                        </small>
+                    </td>
+                    <td class="hidden-sm hidden-xs col-md-1 center" th:text="${bbs.readCount}">10</td>
+                    <td class="hidden-sm hidden-xs col-md-2 center" th:text="${bbs.displayUsername}"></td>
+                    <td class="hidden-sm hidden-xs col-md-2 center">
+                        <span th:text="${#calendars.format(bbs.regDate,'yyyy-MM-dd')}"></span>
+                        <br />
+                        <span th:text="${#calendars.format(bbs.regDate,'HH:mm:ss')}"></span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- //table -->
+    <!-- 페이지번호 -->
+    <div class="row">
+        <div class="col-md-4 col-sm-4 col-xs-3 " ></div>
+        <div class="text-center col-md-12 col-sm-12 col-xs-12 " >
+            <ul class="pagination">
+                <div th:insert="~{decorators/manty/common/pagination :: pagination}" ></div>
+            </ul>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-3 " ></div>
+    </div>
+
+    <div class="row" th:if="${bbsType.writeSecurityType.name() == 'ANY'}">
+        <div class="col-md-9"></div>
+        <div class="col-md-3 text-right">
+            <button type="button" id="write-button" class="btn btn-default">글쓰기</button>
+        </div>
+    </div>
+
+    <div class="row" th:if="${bbsType.writeSecurityType.name() == 'AUTHENTICATED_ONLY'}">
+        <div sec:authorize="isAuthenticated()">
+            <div class="col-md-9"></div>
+            <div class="col-md-3 text-right">
+                <button type="button" id="write-button" class="btn btn-default">글쓰기</button>
+            </div>
+        </div>
+    </div>
+
+</th:block>
+</body>
+</html>
