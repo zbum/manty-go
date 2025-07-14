@@ -29,6 +29,12 @@ func main() {
 	postHandler := handler.NewPostHandler(logger, nil, postService)
 	mux.HandleFunc("GET /posts", postHandler.GetPosts)
 
+	// UserService 및 LoginHandler 추가
+	userService := service.NewUserService()
+	loginHandler := handler.NewLoginHandler(userService)
+	mux.HandleFunc("POST /login", loginHandler.Login)
+	mux.HandleFunc("OPTIONS /login", loginHandler.Login)
+
 	log.Panic(http.ListenAndServe(":9090", mux))
 
 }
