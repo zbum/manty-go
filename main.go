@@ -5,7 +5,6 @@ import (
 	"manty-go/handler"
 	"manty-go/resources"
 	"manty-go/service"
-	"manty-go/utils"
 	"net/http"
 
 	"github.com/zbum/mantyboot/http/mux"
@@ -18,7 +17,13 @@ func main() {
 
 	logger := log.Default()
 	mux.AddMiddleware(middleware.AccessLogger(logger))
-	mux.AddMiddleware(utils.CorsAllowAll())
+	mux.AddMiddleware(middleware.CORS(
+		&middleware.CORSConfig{
+			AllowedOrigins: []string{"*"},
+			AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowedHeaders: []string{"*"},
+		},
+	))
 
 	mux.Handle("GET /", http.FileServerFS(resources.GetStaticFs()))
 
@@ -34,6 +39,8 @@ func main() {
 	loginHandler := handler.NewLoginHandler(userService)
 	mux.HandleFunc("POST /login", loginHandler.Login)
 	mux.HandleFunc("OPTIONS /login", loginHandler.Login)
+
+	log.Printf("Starting server on port : %s", ":9090")
 
 	log.Panic(http.ListenAndServe(":9090", mux))
 
